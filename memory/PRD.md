@@ -34,7 +34,11 @@ Rebuild https://halucinate.rakeshanjanappa.com/ with identical content and funct
 - Admin console at /admin (login /admin/login): Products CRUD + object-storage photo upload, Inquiries viewer, SEO tab (meta, keywords, hashtag editor, competitor tracker, AI "Generate with AI" suggestions)
 - Enquiry pipeline: MongoDB save → customer confirmation email + owner notification (reply-to customer) + Telegram message — all verified end-to-end (email 202, Telegram 200)
 - Bruce chatbot: knocking avatar launcher, greeting bubble, streaming SSE answers from live product catalogue + FAQ knowledge base, LEAD_CAPTURED marker → auto-creates enquiry + notifications
-- SEO package: static head meta/OG/Twitter, JSON-LD Organization + FAQPage, noscript fallback, robots.txt (AI-crawler groups), llms.txt, SVG glitch favicon, transparent logo mark
+- SEO package (v2, 2026-10-10 — production domain halucinate.com CONFIRMED by user): canonical, og:url, og:image, twitter:image (summary_large_image), JSON-LD Organization (url, logo, email, 2 phone contactPoints) + WebSite + FAQPage, sitemap.xml, robots.txt with Sitemap line, llms.txt with url + phones, noscript, SVG glitch favicon, transparent logo mark
+- Enquiry pipeline (2026-10-10): status field (new/contacted/closed) on enquiries, PUT /api/admin/enquiries/{id}/status (validated, auth-only), admin Inquiries tab with stage filter chips + counts + per-card stage move buttons
+- Hero idle life (2026-10-10): breathing scale motion, periodic visor glint sweep, random micro head-glances when cursor idle
+- Contact phones (+91 9632121215, +91 9880368600 — user-provided) added to enquiry section, footer, JSON-LD, noscript, llms.txt
+- REMAINING for full go-live: attach halucinate.com to this deployment (user action in platform settings), enable "Search Engine Crawling"/prerender toggle on deploy, verify crawlers with Googlebot/OAI-SearchBot/Claude-SearchBot/PerplexityBot UAs, submit sitemap in Google Search Console
 - Auth: seeded admin rakesh@halucinate.com, bcrypt, JWT cookie, brute-force lockout
 
 ## Verified
@@ -45,18 +49,18 @@ Rebuild https://halucinate.rakeshanjanappa.com/ with identical content and funct
 - `yarn typecheck` clean
 
 ## Pending / Notes
-- Canonical/og:url/sitemap.xml/og:image intentionally OMITTED — production domain not confirmed (preview host must not be shipped as canonical). Add when custom domain is attached; then enable "Search Engine Crawling" toggle on deploy and re-verify with Googlebot/OAI-SearchBot/Claude-SearchBot/PerplexityBot UAs
 - Emails send from platform's default sender address (user approved); reply-to is rakesh@halucinate.com
 - Admin SEO meta fields are stored/documented in DB; the served static head uses the same defaults (hardcoded in index.html) — dynamic head-injection would need SSR or deploy-time prerender
+- Canonical/sitemap/OG all point to https://halucinate.com (confirmed); preview host still serves the app until the domain is attached
 
 ## Backlog
-- P0: Attach production domain → add canonical/og:url/sitemap.xml/og:image; enable crawler prerender toggle; submit sitemap in Google Search Console
-- P1: Bruce conversation history viewer in admin; mark enquiry as contacted/archived
+- P0: Attach halucinate.com domain + enable crawler prerender toggle on deploy + GSC sitemap submission (manual platform steps)
+- P1: Bruce conversation history viewer in admin
 - P1: Auto-apply admin SEO meta changes to served head (build-time inject or prerender)
 - P2: Multi-image galleries per product; product reorder drag-and-drop; WhatsApp delivery for enquiry alerts
-- P2: Analytics dashboard (enquiries per week, top products)
+- P2: Analytics dashboard (enquiries per week, top products, pipeline conversion)
 
 ## Next Tasks
-1. Domain + full SEO activation (canonical, sitemap, prerender toggle, GSC submission)
-2. Enquiry workflow states in admin (new/contacted/closed)
-3. Bruce lead-quality summary (LLM-summarized chat attached to owner email)
+1. Domain attach + prerender toggle + GSC submission (production steps)
+2. Bruce lead-quality summary (LLM-summarized chat attached to owner email)
+3. Product video loops on hover

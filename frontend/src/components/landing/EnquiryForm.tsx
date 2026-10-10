@@ -73,6 +73,12 @@ export default function EnquiryForm({ products }: { products: Product[] }) {
             Share your requirement and our team will contact you with suitable product options,
             general pricing and the next steps.
           </p>
+          <p className="mt-4 text-sm text-slate-400">
+            or call us directly:{" "}
+            <a href="tel:+919632121215" className="font-semibold text-[#00f0ff] transition-opacity hover:opacity-70" data-testid="enquiry-phone-1">+91 96321 21215</a>
+            {" · "}
+            <a href="tel:+919880368600" className="font-semibold text-[#00f0ff] transition-opacity hover:opacity-70" data-testid="enquiry-phone-2">+91 98803 68600</a>
+          </p>
         </motion.div>
 
         {done ? (

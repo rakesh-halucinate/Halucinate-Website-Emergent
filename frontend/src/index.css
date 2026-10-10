@@ -201,6 +201,25 @@
   animation: float-y 6s ease-in-out infinite;
 }
 
+@keyframes breathe {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.015) translateY(-5px); }
+}
+.animate-breathe {
+  animation: breathe 5.5s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+@keyframes glint-sweep {
+  0%, 80% { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
+  84% { opacity: 0.55; }
+  92% { opacity: 0.3; }
+  100% { transform: translateX(260%) skewX(-18deg); opacity: 0; }
+}
+.animate-glint {
+  animation: glint-sweep 7s ease-in-out infinite;
+}
+
 @keyframes scanline-y {
   from { transform: translateY(-100%); }
   to { transform: translateY(100vh); }
@@ -217,7 +236,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee, .animate-float, .animate-neon-pulse, .scanline::after,
+  .animate-marquee, .animate-float, .animate-neon-pulse, .animate-breathe, .animate-glint, .scanline::after,
   .glitch-layer-a, .glitch-layer-b {
     animation: none;
   }

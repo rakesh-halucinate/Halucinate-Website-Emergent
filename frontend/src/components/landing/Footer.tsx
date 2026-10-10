@@ -19,6 +19,14 @@ export default function Footer({ seo }: { seo: SeoPublic | null }) {
             >
               rakesh@halucinate.com
             </a>
+            <div className="mt-3 flex flex-col gap-1">
+              <a href="tel:+919632121215" className="w-fit font-mono text-sm text-slate-300 transition-colors duration-200 hover:text-[#00f0ff]" data-testid="footer-phone-1">
+                +91 96321 21215
+              </a>
+              <a href="tel:+919880368600" className="w-fit font-mono text-sm text-slate-300 transition-colors duration-200 hover:text-[#00f0ff]" data-testid="footer-phone-2">
+                +91 98803 68600
+              </a>
+            </div>
           </div>
 
           <div>

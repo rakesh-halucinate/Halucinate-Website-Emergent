@@ -213,7 +213,15 @@ class InquiryCreate(BaseModel):
 
 class Inquiry(InquiryCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    status: str = "new"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+VALID_STAGES = ("new", "contacted", "closed")
+
+
+class StageIn(BaseModel):
+    status: str
 
 
 class LoginIn(BaseModel):
@@ -668,6 +676,16 @@ async def me(admin: dict = Depends(get_admin)):
 async def list_enquiries(admin: dict = Depends(get_admin)):
     docs = await db.enquiries.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
     return [Inquiry(**d) for d in docs]
+
+
+@api_router.put("/admin/enquiries/{eid}/status")
+async def set_enquiry_status(eid: str, body: StageIn, admin: dict = Depends(get_admin)):
+    if body.status not in VALID_STAGES:
+        raise HTTPException(status_code=422, detail=f"Status must be one of {VALID_STAGES}")
+    result = await db.enquiries.update_one({"id": eid}, {"$set": {"status": body.status}})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Enquiry not found")
+    return {"id": eid, "status": body.status}
 
 
 @api_router.post("/admin/products", response_model=Product, status_code=201)

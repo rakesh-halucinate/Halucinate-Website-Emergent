@@ -31,6 +31,7 @@ export interface Inquiry {
   space?: string;
   install_date?: string;
   message: string;
+  status: string;
   created_at: string;
 }
 

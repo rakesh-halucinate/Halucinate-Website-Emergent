@@ -208,43 +208,109 @@ function ProductsTab() {
   );
 }
 
+const STAGES = [
+  { id: "new", label: "New", badge: "border-[#00f0ff]/40 bg-[#00f0ff]/10 text-[#00f0ff]" },
+  { id: "contacted", label: "Contacted", badge: "border-[#ffb800]/40 bg-[#ffb800]/10 text-[#ffb800]" },
+  { id: "closed", label: "Closed", badge: "border-[#00ffa3]/40 bg-[#00ffa3]/10 text-[#00ffa3]" },
+] as const;
+
 function InquiriesTab() {
+  const qc = useQueryClient();
   const inquiriesQuery = useQuery({ queryKey: ["admin-inquiries"], queryFn: () => apiGet<Inquiry[]>("/admin/enquiries") });
+  const [filter, setFilter] = useState<string>("all");
+
+  const stageMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => apiPut(`/admin/enquiries/${id}/status`, { status }),
+    onSuccess: () => {
+      toast.success("Stage updated");
+      qc.invalidateQueries({ queryKey: ["admin-inquiries"] });
+    },
+    onError: () => toast.error("Could not update stage"),
+  });
+
   const inquiries = inquiriesQuery.data ?? [];
+  const stageOf = (s?: string) => STAGES.find((st) => st.id === s) ?? STAGES[0];
+  const counts = STAGES.map((st) => ({ ...st, n: inquiries.filter((i) => (i.status || "new") === st.id).length }));
+  const visible = filter === "all" ? inquiries : inquiries.filter((i) => (i.status || "new") === filter);
 
   return (
     <div data-testid="admin-inquiries-tab">
-      <h2 className="mb-6 font-heading text-lg font-bold text-white">Inquiries ({inquiries.length})</h2>
-      {inquiries.length === 0 ? (
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <h2 className="font-heading text-lg font-bold text-white">Inquiries ({inquiries.length})</h2>
+        <div className="flex flex-wrap gap-2" data-testid="inquiry-filters">
+          <button
+            onClick={() => setFilter("all")}
+            className={`rounded-full border px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.15em] transition-colors ${filter === "all" ? "border-[#00f0ff] bg-[#00f0ff] text-[#050811]" : "border-[#1e293b] text-slate-400 hover:border-[#00f0ff]/40 hover:text-[#00f0ff]"}`}
+            data-testid="filter-all"
+          >
+            All · {inquiries.length}
+          </button>
+          {counts.map((st) => (
+            <button
+              key={st.id}
+              onClick={() => setFilter(st.id)}
+              className={`rounded-full border px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.15em] transition-colors ${filter === st.id ? "border-[#00f0ff] bg-[#00f0ff] text-[#050811]" : "border-[#1e293b] text-slate-400 hover:border-[#00f0ff]/40 hover:text-[#00f0ff]"}`}
+              data-testid={`filter-${st.id}`}
+            >
+              {st.label} · {st.n}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {visible.length === 0 ? (
         <p className="rounded-xl border border-[#1e293b] bg-[#0b1120] p-8 text-center text-sm text-slate-500" data-testid="inquiries-empty">
-          No inquiries yet. New website enquiries and Bruce chatbot leads will appear here.
+          {inquiries.length === 0
+            ? "No inquiries yet. New website enquiries and Bruce chatbot leads will appear here."
+            : "No inquiries in this stage."}
         </p>
       ) : (
         <div className="space-y-4">
-          {inquiries.map((inq) => (
-            <div key={inq.id} className="rounded-xl border border-[#1e293b] bg-[#0b1120] p-5" data-testid={`inquiry-card-${inq.id}`}>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-heading text-sm font-bold text-white">{inq.name} <span className="ml-2 font-mono text-[10px] font-normal text-slate-500">{new Date(inq.created_at).toLocaleString()}</span></p>
-                  <p className="mt-1 text-xs text-slate-400">{inq.email} · {inq.mobile}{inq.company ? ` · ${inq.company}` : ""}{inq.city ? ` · ${inq.city}${inq.state ? `, ${inq.state}` : ""}` : ""}</p>
+          {visible.map((inq) => {
+            const stage = stageOf(inq.status);
+            return (
+              <div key={inq.id} className="rounded-xl border border-[#1e293b] bg-[#0b1120] p-5" data-testid={`inquiry-card-${inq.id}`}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-heading text-sm font-bold text-white">{inq.name} <span className="ml-2 font-mono text-[10px] font-normal text-slate-500">{new Date(inq.created_at).toLocaleString()}</span></p>
+                    <p className="mt-1 text-xs text-slate-400">{inq.email} · {inq.mobile}{inq.company ? ` · ${inq.company}` : ""}{inq.city ? ` · ${inq.city}${inq.state ? `, ${inq.state}` : ""}` : ""}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {inq.budget && <span className="rounded-full border border-[#00f0ff]/30 px-3 py-1 font-mono text-[10px] text-[#00f0ff]">{inq.budget}</span>}
+                    <span className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em] ${stage.badge}`} data-testid={`inquiry-status-${inq.id}`}>
+                      {stage.label}
+                    </span>
+                  </div>
                 </div>
-                {inq.budget && <span className="rounded-full border border-[#00f0ff]/30 px-3 py-1 font-mono text-[10px] text-[#00f0ff]">{inq.budget}</span>}
-              </div>
-              {inq.products.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {inq.products.map((p) => (
-                    <span key={p} className="rounded-full bg-[#002b3d] px-2.5 py-0.5 text-[10px] text-[#00f0ff]">{p}</span>
+                {inq.products.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {inq.products.map((p) => (
+                      <span key={p} className="rounded-full bg-[#002b3d] px-2.5 py-0.5 text-[10px] text-[#00f0ff]">{p}</span>
+                    ))}
+                  </div>
+                )}
+                <p className="mt-3 text-sm leading-relaxed text-slate-300">{inq.message}</p>
+                {(inq.space || inq.install_date) && (
+                  <p className="mt-2 font-mono text-[10px] text-slate-500">
+                    {inq.space ? `Space: ${inq.space}` : ""}{inq.space && inq.install_date ? " · " : ""}{inq.install_date ? `Install: ${inq.install_date}` : ""}
+                  </p>
+                )}
+                <div className="mt-4 flex flex-wrap gap-2 border-t border-[#1e293b]/60 pt-3">
+                  {STAGES.filter((st) => st.id !== stage.id).map((st) => (
+                    <button
+                      key={st.id}
+                      onClick={() => stageMutation.mutate({ id: inq.id, status: st.id })}
+                      disabled={stageMutation.isPending}
+                      className="rounded-full border border-[#1e293b] px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-slate-400 transition-colors hover:border-[#00f0ff]/50 hover:text-[#00f0ff] disabled:opacity-40"
+                      data-testid={`move-${st.id}-${inq.id}`}
+                    >
+                      → {st.label}
+                    </button>
                   ))}
                 </div>
-              )}
-              <p className="mt-3 text-sm leading-relaxed text-slate-300">{inq.message}</p>
-              {(inq.space || inq.install_date) && (
-                <p className="mt-2 font-mono text-[10px] text-slate-500">
-                  {inq.space ? `Space: ${inq.space}` : ""}{inq.space && inq.install_date ? " · " : ""}{inq.install_date ? `Install: ${inq.install_date}` : ""}
-                </p>
-              )}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
