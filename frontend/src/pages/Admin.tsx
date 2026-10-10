@@ -2,15 +2,16 @@ import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
-import { LayoutGrid, LogOut, Mail, Pencil, Plus, Search, Sparkles, Trash2, Upload } from "lucide-react";
+import { LayoutGrid, LogOut, Mail, MessageSquare, Pencil, Plus, Search, Sparkles, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api";
 import type { Inquiry, Product, SeoPublic } from "@/lib/data";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import ChatsTab from "@/pages/admin/ChatsTab";
 
-type Tab = "products" | "inquiries" | "seo";
+type Tab = "products" | "inquiries" | "chats" | "seo";
 
 const inputCls =
   "w-full rounded-lg border border-[#1e293b] bg-[#050811] px-3.5 py-2.5 text-sm text-white placeholder:text-slate-600 outline-none transition-colors focus:border-[#00f0ff]/60";
@@ -290,6 +291,12 @@ function InquiriesTab() {
                   </div>
                 )}
                 <p className="mt-3 text-sm leading-relaxed text-slate-300">{inq.message}</p>
+                {inq.chat_summary && (
+                  <div className="mt-3 rounded-lg border border-[#7928ca]/40 bg-[#7928ca]/10 p-3" data-testid={`inquiry-summary-${inq.id}`}>
+                    <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-[#c29bff]">Bruce AI deal summary</p>
+                    <p className="whitespace-pre-line text-xs leading-relaxed text-slate-300">{inq.chat_summary}</p>
+                  </div>
+                )}
                 {(inq.space || inq.install_date) && (
                   <p className="mt-2 font-mono text-[10px] text-slate-500">
                     {inq.space ? `Space: ${inq.space}` : ""}{inq.space && inq.install_date ? " · " : ""}{inq.install_date ? `Install: ${inq.install_date}` : ""}
@@ -342,6 +349,24 @@ function SeoTab() {
     onSuccess: (res) => setSuggestions(res),
     onError: () => toast.error("AI suggestion failed — try again"),
   });
+
+  const addEverything = () => {
+    if (!suggestions) return;
+    const mergedTags = [...data!.hashtags];
+    suggestions.hashtags.forEach((h) => {
+      const t = h.startsWith("#") ? h : `#${h}`;
+      if (!mergedTags.includes(t)) mergedTags.push(t);
+    });
+    const mergedComps = [...data!.competitors];
+    suggestions.competitors.forEach((c) => {
+      const clean = c.trim();
+      if (clean && !mergedComps.includes(clean)) mergedComps.push(clean);
+    });
+    const next = { ...data!, hashtags: mergedTags, competitors: mergedComps };
+    setForm(next);
+    saveMutation.mutate(next);
+    toast.success("All suggestions are live on your website");
+  };
 
   if (!data) return <p className="text-sm text-slate-500">Loading SEO settings…</p>;
 
@@ -435,6 +460,19 @@ function SeoTab() {
 
         {suggestions && (
           <div className="mt-6 space-y-5" data-testid="seo-suggestions">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#00ffa3]/30 bg-[#00ffa3]/5 p-4">
+              <p className="max-w-md text-xs leading-relaxed text-slate-300">
+                Push every suggested hashtag and competitor straight onto your live website in one click.
+              </p>
+              <button
+                onClick={addEverything}
+                disabled={saveMutation.isPending}
+                className="rounded-full bg-[#00ffa3] px-5 py-2.5 font-heading text-xs font-bold uppercase tracking-[0.15em] text-[#050811] transition-transform duration-200 hover:scale-105 disabled:opacity-50"
+                data-testid="seo-add-everything"
+              >
+                {saveMutation.isPending ? "Applying…" : "Add Everything to Website"}
+              </button>
+            </div>
             <div>
               <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">Suggested hashtags — click to add</p>
               <div className="flex flex-wrap gap-2">
@@ -521,6 +559,7 @@ export default function Admin() {
   const TABS: { id: Tab; label: string; icon: typeof LayoutGrid }[] = [
     { id: "products", label: "Products", icon: LayoutGrid },
     { id: "inquiries", label: "Inquiries", icon: Mail },
+    { id: "chats", label: "Bruce Chats", icon: MessageSquare },
     { id: "seo", label: "SEO & AI Search", icon: Sparkles },
   ];
 
@@ -568,6 +607,7 @@ export default function Admin() {
 
         {tab === "products" && <ProductsTab />}
         {tab === "inquiries" && <InquiriesTab />}
+        {tab === "chats" && <ChatsTab />}
         {tab === "seo" && <SeoTab />}
       </div>
     </div>

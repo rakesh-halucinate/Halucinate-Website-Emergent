@@ -209,6 +209,7 @@ class InquiryCreate(BaseModel):
     install_date: Optional[str] = ""
     message: str
     consent: bool = False
+    chat_summary: Optional[str] = ""
 
 
 class Inquiry(InquiryCreate):
@@ -493,11 +494,22 @@ def _owner_html(inq: dict) -> str:
         f"<td style='padding:8px 12px;border:1px solid #1e293b;color:#e6f6ff'>{escape(str(v))}</td></tr>"
         for k, v in rows
     )
+    summary_block = ""
+    if (inq.get("chat_summary") or "").strip():
+        summary_html = escape(inq["chat_summary"].strip()).replace("\n", "<br/>")
+        summary_block = (
+            "<div style='margin-top:18px;padding:14px 16px;border:1px solid #7928ca;"
+            "background:#150b26;border-radius:8px'>"
+            "<p style='margin:0 0 8px 0;font-size:11px;letter-spacing:2px;color:#c29bff'>BRUCE AI DEAL SUMMARY</p>"
+            f"<p style='margin:0;color:#e6f6ff;line-height:1.6'>{summary_html}</p>"
+            "</div>"
+        )
     return (
         "<table role='presentation' width='100%' cellpadding='0' cellspacing='0'>"
         "<tr><td style='padding:32px;font-family:Arial,sans-serif;background:#050811;color:#e6f6ff'>"
         "<p style='font-size:22px;letter-spacing:4px;color:#00f0ff;margin:0 0 18px 0'>New Halucinate enquiry</p>"
         f"<table style='border-collapse:collapse;width:100%'>{trs}</table>"
+        f"{summary_block}"
         "<p style='margin-top:24px;font-size:12px;color:#8ba2c1'>Reply directly to this email to reach the customer. Sent by Halucinate.</p>"
         "</td></tr></table>"
     )
@@ -546,6 +558,8 @@ async def dispatch_notifications(inq: dict) -> None:
         f"<b>Products:</b> {escape(', '.join(inq['products']) or 'General')}\n"
         f"<b>Message:</b> {escape(inq['message'])}"
     )
+    if (inq.get("chat_summary") or "").strip():
+        tg += "\n\n<b>Bruce AI summary:</b>\n" + escape(inq["chat_summary"].strip())
     await send_telegram(tg)
 
 
@@ -563,6 +577,28 @@ async def create_enquiry(body: InquiryCreate):
 
 # ---------------------------------------------------------------- bruce chat
 LEAD_RE = re.compile(r"LEAD_CAPTURED\|name=([^|\n]+)\|email=([^\s|\n]+)")
+
+
+async def summarize_chat(transcript: str) -> str:
+    from emergentintegrations.llm.chat import LlmChat, StreamDone, TextDelta, UserMessage
+
+    chat = LlmChat(
+        api_key=os.environ["EMERGENT_LLM_KEY"],
+        session_id=f"summary-{uuid.uuid4()}",
+        system_message=(
+            "You write crisp internal deal summaries for the owner of Halucinate, an immersive "
+            "entertainment company. Given a customer chat transcript, output exactly 3 short bullet "
+            "lines, each starting with '- ': (1) what the customer wants, (2) budget, location or "
+            "timeline signals ('not shared' if none), (3) recommended follow-up action. Plain text only."
+        ),
+    ).with_model("openai", "gpt-5.4")
+    out = ""
+    async for ev in chat.stream_message(UserMessage(text=f"Transcript:\n{transcript[-4000:]}")):
+        if isinstance(ev, TextDelta):
+            out += ev.content
+        elif isinstance(ev, StreamDone):
+            break
+    return out.strip()
 
 
 @api_router.post("/chat")
@@ -619,15 +655,26 @@ async def bruce_chat(body: ChatIn):
         if lead:
             name = lead.group(1).strip()
             email = lead.group(2).strip()
-            summary = " | ".join(f"{m['role']}: {m['content']}" for m in history[-6:])
+            full_transcript = (transcript + "\n" if transcript else "") + \
+                f"customer: {body.message}\nbruce: {visible}"
+            ai_summary = ""
+            try:
+                ai_summary = await summarize_chat(full_transcript)
+            except Exception as e:
+                logger.error(f"Chat summary failed: {e}")
+            recent = " | ".join(f"{m['role']}: {m['content']}" for m in history[-6:])
             inq = Inquiry(
                 products=[], name=name, email=email, mobile="—",
-                message=f"Quotation requested via Bruce chatbot. Recent chat: {summary[:1500]}",
-                consent=True,
+                message=f"Quotation requested via Bruce chatbot. Recent chat: {recent[:1200]}",
+                chat_summary=ai_summary, consent=True,
             )
             doc = inq.model_dump()
             await db.enquiries.insert_one(doc)
             doc.pop("_id", None)
+            await db.chat_sessions.update_one(
+                {"id": body.session_id},
+                {"$set": {"lead": {"name": name, "email": email}, "summary": ai_summary}},
+            )
             asyncio.create_task(dispatch_notifications(doc))
         yield f"data: {json.dumps({'done': True})}\n\n"
 
@@ -686,6 +733,32 @@ async def set_enquiry_status(eid: str, body: StageIn, admin: dict = Depends(get_
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Enquiry not found")
     return {"id": eid, "status": body.status}
+
+
+@api_router.get("/admin/chats")
+async def list_chats(admin: dict = Depends(get_admin)):
+    docs = await db.chat_sessions.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    out = []
+    for d in docs:
+        msgs = d.get("messages", [])
+        first_customer = next((m for m in msgs if m.get("role") == "customer"), None)
+        out.append({
+            "id": d["id"],
+            "created_at": d.get("created_at"),
+            "message_count": len(msgs),
+            "preview": (first_customer or {}).get("content", "")[:140],
+            "lead": d.get("lead"),
+            "summary": d.get("summary", ""),
+        })
+    return out
+
+
+@api_router.get("/admin/chats/{cid}")
+async def get_chat(cid: str, admin: dict = Depends(get_admin)):
+    doc = await db.chat_sessions.find_one({"id": cid}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    return doc
 
 
 @api_router.post("/admin/products", response_model=Product, status_code=201)

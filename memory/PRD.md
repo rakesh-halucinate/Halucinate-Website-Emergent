@@ -36,6 +36,10 @@ Rebuild https://halucinate.rakeshanjanappa.com/ with identical content and funct
 - Bruce chatbot: knocking avatar launcher, greeting bubble, streaming SSE answers from live product catalogue + FAQ knowledge base, LEAD_CAPTURED marker → auto-creates enquiry + notifications
 - SEO package (v2, 2026-10-10 — production domain halucinate.com CONFIRMED by user): canonical, og:url, og:image, twitter:image (summary_large_image), JSON-LD Organization (url, logo, email, 2 phone contactPoints) + WebSite + FAQPage, sitemap.xml, robots.txt with Sitemap line, llms.txt with url + phones, noscript, SVG glitch favicon, transparent logo mark
 - Enquiry pipeline (2026-10-10): status field (new/contacted/closed) on enquiries, PUT /api/admin/enquiries/{id}/status (validated, auth-only), admin Inquiries tab with stage filter chips + counts + per-card stage move buttons
+- Smarter owner alerts (2026-10-10): on Bruce lead capture a second LLM pass writes a 3-line AI deal summary (want / budget-location-timeline / follow-up); stored on enquiry (chat_summary) + chat session; rendered in owner email (purple block), Telegram alert, and admin cards
+- Bruce chat history in admin (2026-10-10): GET /api/admin/chats (+ /{id}) — new "Bruce Chats" tab lists every conversation with lead badge, AI summary, expandable full thread
+- SEO "Add Everything to Website" (2026-10-10): one click merges all AI-suggested hashtags + competitors into settings and saves — live in footer + /api/seo instantly
+- Admin SEO meta now applies live to page title/description/keywords client-side (Home.tsx effect); crawlers still see the static index.html head
 - Hero idle life (2026-10-10): breathing scale motion, periodic visor glint sweep, random micro head-glances when cursor idle
 - Contact phones (+91 9632121215, +91 9880368600 — user-provided) added to enquiry section, footer, JSON-LD, noscript, llms.txt
 - REMAINING for full go-live: attach halucinate.com to this deployment (user action in platform settings), enable "Search Engine Crawling"/prerender toggle on deploy, verify crawlers with Googlebot/OAI-SearchBot/Claude-SearchBot/PerplexityBot UAs, submit sitemap in Google Search Console

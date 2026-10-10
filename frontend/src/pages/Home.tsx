@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { apiGet } from "@/lib/api";
 import { FALLBACK_PRODUCTS, type Product, type SeoPublic } from "@/lib/data";
 import Navbar from "@/components/landing/Navbar";
@@ -31,6 +32,16 @@ export default function Home() {
       ? productsQuery.data
       : FALLBACK_PRODUCTS;
   const seo = seoQuery.isError ? null : seoQuery.data ?? null;
+
+  // Admin-saved SEO meta goes live on the page title + meta tags
+  useEffect(() => {
+    if (!seo) return;
+    if (seo.meta_title) document.title = seo.meta_title;
+    const desc = document.querySelector('meta[name="description"]');
+    if (desc && seo.meta_description) desc.setAttribute("content", seo.meta_description);
+    const kw = document.querySelector('meta[name="keywords"]');
+    if (kw && seo.keywords) kw.setAttribute("content", seo.keywords);
+  }, [seo]);
 
   return (
     <div className="min-h-screen bg-[#050811] text-[#f0f6fc]" data-testid="home-page">
