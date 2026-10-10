@@ -48,6 +48,7 @@ Rebuild https://halucinate.rakeshanjanappa.com/ with identical content and funct
 - Auth: seeded admin rakesh@halucinate.com, bcrypt, JWT cookie, brute-force lockout
 
 ## Verified
+- GitHub: full codebase pushed to rakesh-halucinate/Halucinate-Website-Emergent (main, commit 6a5e119b) on 2026-10-10; .env files excluded via .gitignore (secrets never pushed); origin remote configured with stored credential (~/.git-credentials, fine-grained PAT with Contents write — user may revoke; future pushes: git push origin main)
 - curl: 9 products, enquiry 201, login 401/200, /auth/me, admin enquiries, product create/update/delete, upload + file serve (200 image/png), unauth 401, robots.txt 200
 - Backend logs: both emails 202 Accepted, Telegram 200 OK
 - Bruce SSE stream answers correctly with live pricing
