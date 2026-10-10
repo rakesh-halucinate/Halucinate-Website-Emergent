@@ -28,7 +28,8 @@ Rebuild https://halucinate.rakeshanjanappa.com/ with identical content and funct
 6. Black (#050811) + neon blue (#00F0FF) theme, Halucinate glitch logo, 3D hero
 
 ## Implemented (2026-10-10)
-- Full landing page: kinetic masked-reveal hero with interactive Three.js VR headset (cursor-tracking), marquee, dynamic product bento (API-driven w/ fallback), pricing table, parallax experience section, FAQ accordion, enquiry form, footer w/ live hashtags, lenis smooth scroll
+- Full landing page: kinetic masked-reveal hero, marquee, dynamic product bento (API-driven w/ fallback), pricing table, parallax experience section, FAQ accordion, enquiry form, footer w/ live hashtags, lenis smooth scroll
+- Hero visual (v2, 2026-10-10): photo-realistic AI-generated "head-turn rig" — the same man in a VR headset rendered in 11 consistent poses (center/left/right/up/down/diagonals/profiles), cross-faded by smoothed cursor position so his head naturally follows the pointer; idle auto-sway when the mouse is still; layered over a Three.js ambient scene (particles, rotating neon halo rings, infinite grid). Replaced the earlier procedural 3D head per user feedback
 - All 9 original products seeded with original copy, prices and original photos (downloaded + re-hosted locally)
 - Admin console at /admin (login /admin/login): Products CRUD + object-storage photo upload, Inquiries viewer, SEO tab (meta, keywords, hashtag editor, competitor tracker, AI "Generate with AI" suggestions)
 - Enquiry pipeline: MongoDB save → customer confirmation email + owner notification (reply-to customer) + Telegram message — all verified end-to-end (email 202, Telegram 200)

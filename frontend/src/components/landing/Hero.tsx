@@ -1,8 +1,11 @@
 import { useRef } from "react";
 import { motion } from "motion/react";
 import { ArrowRight, MousePointer2 } from "lucide-react";
-import VRHeadScene, { type PointerRef } from "./VRHeadScene";
+import VRAmbientScene from "./VRAmbientScene";
+import VRPersonRig from "./VRPersonRig";
 import { scrollToId } from "@/lib/scroll";
+
+type PointerRef = { current: { x: number; y: number } };
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -30,10 +33,11 @@ export default function Hero() {
       className="scanline relative flex min-h-screen items-center overflow-hidden bg-[#050811]"
       data-testid="hero-section"
     >
-      {/* 3D scene */}
-      <div className="absolute inset-0 opacity-60 md:left-1/3 md:opacity-100">
-        <VRHeadScene pointer={pointer} />
+      {/* 3D ambient scene + photo-realistic person rig */}
+      <div className="absolute inset-0 opacity-70 md:opacity-100">
+        <VRAmbientScene />
       </div>
+      <VRPersonRig pointer={pointer} />
       <div className="hero-scrim pointer-events-none absolute inset-0" />
       <div className="bg-cyber-grid pointer-events-none absolute inset-0 opacity-40" />
 
