@@ -1,0 +1,23 @@
+# Halucinate
+
+> Halucinate designs and delivers advanced VR attractions, immersive entertainment systems, automated kiosks, physical experiences and custom event activations for malls, entertainment centres, businesses and destinations across India.
+
+## What Halucinate builds
+
+- Multiplayer Free Roam VR — wireless multi-player virtual gaming arenas for gaming centres, malls, resorts and family entertainment centres.
+- Single-Player VR Games — compact VR attractions including VR cricket, VR shooting, racing simulators and horror experiences, suited to Tier 2 cities and smaller venues.
+- AI Photo Booth — fully automated AI portrait and photo-strip kiosk for malls, events and tourist destinations.
+- Physical Escape Rooms — complete themed escape rooms with electronic puzzles, sensors and automated control systems.
+- Digital Scary House — projection-mapped walkthrough horror attraction with physical effects and interactive puzzles.
+- Self-Service Massage Chair Kiosk — unattended QR-payment massage chair kiosk for cinemas, malls, airports and corporate spaces.
+- Custom Event Activations — technology-based branded activations for corporate events, exhibitions, festivals and mall promotions.
+- Super Reality 360 Dome — large-format panoramic projection dome for shared immersive shows.
+- Immersive Room — multi-wall projection environment for gaming, education, storytelling and brand experiences.
+
+## Pages
+
+- / — full product catalogue, indicative pricing, FAQs and enquiry form.
+
+## Contact
+
+- Email: rakesh@halucinate.com

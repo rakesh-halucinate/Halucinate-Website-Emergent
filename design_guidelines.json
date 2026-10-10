@@ -1,0 +1,339 @@
+{
+  "project_name": "Halucinate - Immersive Entertainment & Next-Gen VR Attractions",
+  "theme": "dark",
+  "primary_palette_style": "Electric Obsidian & Neon Cyan Cyber-Immersive (Archetype 7)",
+  "colors": {
+    "surfaces": [
+      {
+        "name": "page",
+        "kind": "solid",
+        "bg": "#050811",
+        "on_bg": "#F0F6FC",
+        "on_bg_muted": "#8BA2C1",
+        "roles": {
+          "link": "#00F0FF",
+          "error": "#FF4466",
+          "success": "#00FFA3",
+          "warning": "#FFB800"
+        }
+      },
+      {
+        "name": "panel",
+        "kind": "solid",
+        "bg": "#0B1120",
+        "on_bg": "#F8FAFC",
+        "on_bg_muted": "#94A3B8",
+        "roles": {
+          "border": "#1E293B",
+          "glow_border": "rgba(0, 240, 255, 0.4)"
+        }
+      },
+      {
+        "name": "card_hover",
+        "kind": "solid",
+        "bg": "#0F1A2E",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#A5B4FC"
+      },
+      {
+        "name": "glass_nav",
+        "kind": "glass",
+        "contrast_against": "#080D1A",
+        "guarantee": "backdrop-blur-2xl bg-[#050811]/85 border-b border-[#00F0FF]/20 shadow-[0_10px_30px_rgba(0,0,0,0.8)]",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#94A3B8",
+        "roles": {
+          "brand": "#00F0FF"
+        }
+      },
+      {
+        "name": "hero",
+        "kind": "gradient",
+        "contrast_against": "#050811",
+        "guarantee": "scrim: radial-gradient(circle at 50% 30%, rgba(0, 240, 255, 0.15) 0%, rgba(5, 8, 17, 0.95) 75%, #050811 100%)",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#94A3B8",
+        "roles": {
+          "link": "#00F0FF",
+          "error": "#FF4466",
+          "success": "#00FFA3"
+        }
+      },
+      {
+        "name": "neon_badge",
+        "kind": "solid",
+        "bg": "#002B3D",
+        "on_bg": "#00F0FF",
+        "on_bg_muted": "#5EEAD4"
+      },
+      {
+        "name": "admin_sidebar",
+        "kind": "solid",
+        "bg": "#070C18",
+        "on_bg": "#F1F5F9",
+        "on_bg_muted": "#64748B"
+      }
+    ],
+    "accent": "#00F0FF",
+    "on_accent": "#050811",
+    "secondary_accent": "#7928CA",
+    "neon_glow": "0 0 25px rgba(0, 240, 255, 0.65)"
+  },
+  "typography": {
+    "font_family_heading": "Space Grotesk Variable, sans-serif",
+    "font_family_body": "Geist Variable, sans-serif",
+    "font_family_mono": "JetBrains Mono Variable, monospace",
+    "font_import": "@import \"@fontsource-variable/space-grotesk\";\n@import \"@fontsource-variable/geist\";\n@import \"@fontsource-variable/jetbrains-mono\";",
+    "scale_px": {
+      "display": 60,
+      "h1": 48,
+      "h2": 36,
+      "h3": 24,
+      "body": 16,
+      "caption": 14
+    },
+    "rules": {
+      "h1_classes": "text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none uppercase font-heading",
+      "h2_classes": "text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight font-heading",
+      "h3_classes": "text-xl sm:text-2xl font-bold font-heading",
+      "h4_classes": "text-lg sm:text-xl font-semibold font-heading",
+      "body_classes": "text-base leading-relaxed font-sans text-slate-300",
+      "caption_classes": "text-sm text-slate-400 font-sans tracking-normal",
+      "overline_classes": "text-xs uppercase font-mono tracking-[0.25em] text-[#00F0FF]"
+    }
+  },
+  "entry_surfaces": {
+    "/": "split kinetic hero — glitch brand mark, interactive 3D VR headset simulator left/center, immersive value proposition & enquiry trigger right",
+    "/admin": "cyber tactical admin panel — dark sidebar navigation left, dense stat cards & interactive product CRUD table right",
+    "/admin/login": "branded cyber security gate — high-contrast black & neon blue card with glitch wordmark, password auth, and session trigger"
+  },
+  "visual_enhancers": {
+    "halucinate_logo": {
+      "type": "kinetic_svg_glitch",
+      "description": "Halucinate custom SVG wordmark with RGB echo split (cyan + magenta offset), scanlines, and glowing neon-blue typography."
+    },
+    "3d_vr_hero_visual": {
+      "implementation": "interactive_threejs_canvas",
+      "description": "Custom Canvas/Three.js or procedural 3D wireframe head mesh with futuristic glowing VR goggles (Oculus/Vision Pro cyber visor), responsive to cursor mouse move (turns left/right, up/down with dynamic specular cyan highlights and floating grid particles)."
+    },
+    "cyber_grid_background": "CSS repeating radial grid with ambient cyan light bloom: `bg-[radial-gradient(#00f0ff15_1px,transparent_1px)] [background-size:24px_24px]`",
+    "tracing_beam_cards": "Interactive neon cyan hover border glowing on attraction cards with subtle 3D tilt effects using motion/react."
+  },
+  "attractions_catalog_data": [
+    {
+      "id": "multiplayer-free-roam-vr",
+      "title": "Multiplayer Free Roam VR",
+      "tagline": "Untethered full-body arena shooter & co-op quests",
+      "category": "Arena Experience",
+      "capacity": "4 - 8 Players",
+      "space_required": "800 - 1500 sq.ft",
+      "indicative_pricing_inr": "₹15,00,000 - ₹35,00,000",
+      "rental_day_rate_inr": "₹45,000 / day",
+      "image_url": "https://images.unsplash.com/photo-1569008477288-d2f6e2d914e1?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Lag-free ultra-wide arena tracking where squads physically run, dodge, and battle zombies, aliens, or solve sci-fi puzzles in high-fidelity 4K headsets."
+    },
+    {
+      "id": "single-player-vr-games",
+      "title": "Single-Player VR Game Stations",
+      "tagline": "Curated library of 50+ AAA action & rhythm simulators",
+      "category": "Arcade Booth",
+      "capacity": "1 Player / Pod",
+      "space_required": "100 sq.ft / pod",
+      "indicative_pricing_inr": "₹3,50,000 / station",
+      "rental_day_rate_inr": "₹12,000 / day",
+      "image_url": "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "High-throughput commercial gaming pods featuring Beat Saber, Superhot, roller coasters, boxing, and aviation flight simulators."
+    },
+    {
+      "id": "ai-photo-booth",
+      "title": "AI Cyber Photo Booth",
+      "tagline": "Instant generative avatars & instant print hashtag kiosk",
+      "category": "Event Activation",
+      "capacity": "1 - 6 Persons",
+      "space_required": "80 sq.ft",
+      "indicative_pricing_inr": "₹4,50,000 - ₹8,00,000",
+      "rental_day_rate_inr": "₹25,000 / event",
+      "image_url": "https://images.unsplash.com/photo-1653158861306-e5b3804f6115?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Live camera capture turned into cyberpunk, fantasy, or branded superhero art with instant QR download, WhatsApp dispatch, and thermal prints."
+    },
+    {
+      "id": "physical-escape-rooms",
+      "title": "Physical Sci-Fi Escape Rooms",
+      "tagline": "High-tech sensory puzzles & electronic locking chambers",
+      "category": "Mystery Chambers",
+      "capacity": "2 - 6 Players",
+      "space_required": "300 - 600 sq.ft",
+      "indicative_pricing_inr": "₹8,00,000 - ₹20,00,000",
+      "rental_day_rate_inr": "₹40,000 / setup",
+      "image_url": "https://images.unsplash.com/photo-1522745310420-7aca9dd1c979?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Custom automated escape rooms with RFID sensors, laser triggers, dynamic audio cues, and cinematic countdown storytelling."
+    },
+    {
+      "id": "digital-scary-house",
+      "title": "Digital Scary House",
+      "tagline": "Haptic horror simulation with binaural jump-scares",
+      "category": "Horror Walkthrough",
+      "capacity": "4 Players concurrent",
+      "space_required": "500 - 1000 sq.ft",
+      "indicative_pricing_inr": "₹12,00,000 - ₹25,00,000",
+      "rental_day_rate_inr": "₹50,000 / day",
+      "image_url": "https://images.unsplash.com/photo-1671573220379-e86305b1e61c?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "A spine-chilling hybrid maze with pneumatic floor drops, temperature changes, 4D wind blasts, and hyper-realistic apparitions."
+    },
+    {
+      "id": "massage-chair-kiosk",
+      "title": "Self-Service Massage Chair Kiosk",
+      "tagline": "Autonomous zero-gravity relaxation with UPI / Coin pay",
+      "category": "Revenue Kiosk",
+      "capacity": "1 User / Kiosk",
+      "space_required": "30 sq.ft",
+      "indicative_pricing_inr": "₹1,80,000 / kiosk",
+      "rental_day_rate_inr": "₹8,000 / day",
+      "image_url": "https://images.unsplash.com/photo-1663768411329-1e538fff56c0?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Plug-and-play high-revenue mall and transit kiosk featuring commercial robotic massage with IoT telemetry and cloud payments."
+    },
+    {
+      "id": "custom-event-activations",
+      "title": "Custom Brand Event Activations",
+      "tagline": "Tailored corporate summits, expos, and college fests",
+      "category": "Bespoke Experiential",
+      "capacity": "Scalable 500+ attendees",
+      "space_required": "Flexible",
+      "indicative_pricing_inr": "₹1,50,000 - ₹10,00,000",
+      "rental_day_rate_inr": "Custom Quote",
+      "image_url": "https://images.unsplash.com/photo-1655928461456-b5c6db979360?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Turnkey experiential marketing zones with branded VR games, motion simulators, leaderboard screens, and professional booth attendants."
+    },
+    {
+      "id": "super-reality-360-dome",
+      "title": "Super Reality 360 Dome",
+      "tagline": "Panoramic geodesic fulldome projection theater",
+      "category": "Immersive Theater",
+      "capacity": "15 - 40 Audience",
+      "space_required": "800 - 2000 sq.ft",
+      "indicative_pricing_inr": "₹28,00,000 - ₹65,00,000",
+      "rental_day_rate_inr": "₹85,000 / day",
+      "image_url": "https://images.unsplash.com/photo-1549231777-e2258a665606?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Glasses-free shared VR dome experience displaying 360-degree cosmic flights, deep sea dives, and high-impact educational films."
+    },
+    {
+      "id": "immersive-room",
+      "title": "Interactive Immersive Room (CAVE)",
+      "tagline": "Multi-wall interactive projection mapping with touch radar",
+      "category": "Interactive Spaces",
+      "capacity": "10 - 25 Persons",
+      "space_required": "400 - 1200 sq.ft",
+      "indicative_pricing_inr": "₹18,00,000 - ₹45,00,000",
+      "rental_day_rate_inr": "₹60,000 / day",
+      "image_url": "https://images.unsplash.com/photo-1772587003187-65b32c91df91?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Floor-to-ceiling LiDAR touch sensors turning entire architectural spaces into living digital ecosystems, kids play arenas, or brand showcases."
+    }
+  ],
+  "faq_data": [
+    {
+      "question": "What is the minimum setup space required for Halucinate attractions?",
+      "answer": "Our attractions range from compact standalone kiosks (30 sq.ft for Massage Chairs and 80 sq.ft for AI Photo Booths) to massive Free Roam VR Arenas requiring 800 - 1,500 sq.ft. We provide turnkey layout CAD blueprints for malls, FECs, and corporate spaces."
+    },
+    {
+      "question": "Can Halucinate attractions be rented for corporate events and college festivals?",
+      "answer": "Yes! We offer 1-day to multi-week rental packages across India (Bangalore, Mumbai, Delhi NCR, Hyderabad, Chennai) complete with hardware, high-end PC rigs, technicians, and game hosts."
+    },
+    {
+      "question": "What is the ROI and payback period for establishing an FEC VR zone?",
+      "answer": "Typical commercial VR arcade zones generate payback within 6 to 14 months depending on footfall. We provide full hardware warranty, game licensing, cloud telemetry, and operator training."
+    },
+    {
+      "question": "Do you provide custom game branding for sponsor activations?",
+      "answer": "Absolutely. Our in-house Unreal Engine & Unity developer team embeds custom corporate logos, product 3D models, custom avatars, and branded leaderboards for marketing launches."
+    },
+    {
+      "question": "How do we receive quotes and site inspections?",
+      "answer": "Submit our interactive enquiry form with your desired attractions, space dimensions, and budget range. Our tech deployment team will reach out within 2 hours with indicative quotation PDF & layout options."
+    }
+  ],
+  "image_urls": {
+    "hero_vr_gamer": "https://images.unsplash.com/photo-1535223289827-42f1e9919769?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "arena_free_roam": "https://images.unsplash.com/photo-1569008477288-d2f6e2d914e1?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "arcade_booth": "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "escape_room": "https://images.unsplash.com/photo-1522745310420-7aca9dd1c979?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "scary_house": "https://images.unsplash.com/photo-1671573220379-e86305b1e61c?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "ai_photo_booth": "https://images.unsplash.com/photo-1653158861306-e5b3804f6115?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "dome_cave": "https://images.unsplash.com/photo-1549231777-e2258a665606?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "corporate_event": "https://images.unsplash.com/photo-1655928461456-b5c6db979360?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "immersive_room": "https://images.unsplash.com/photo-1772587003187-65b32c91df91?crop=entropy&cs=srgb&fm=jpg&q=85"
+  },
+  "motion": {
+    "scroll_reveal": {
+      "initial": { "opacity": 0, "y": 30 },
+      "whileInView": { "opacity": 1, "y": 0 },
+      "transition": { "duration": 0.6, "ease": [0.16, 1, 0.3, 1] },
+      "viewport": { "once": true, "margin": "-50px" }
+    },
+    "glitch_text": "CSS keyframe glitch animation with text-shadow offsets in cyan (#00F0FF) and pink (#FF007F)",
+    "neon_pulse": "pulse animation oscillating box-shadow from 0 0 10px rgba(0,240,255,0.3) to 0 0 30px rgba(0,240,255,0.8)",
+    "marquee": "Infinite marquee using flexbox & translate3d(-50%, 0, 0) duration 25s linear infinite"
+  },
+  "accessibility": {
+    "contrast_standards": "All text elements meet APCA / WCAG AA 4.5:1 ratio against dark background (#050811). Muted slate text (#8BA2C1 and #94A3B8) exceeds 6:1 contrast.",
+    "reduced_motion": "Wrap non-essential continuous kinetic animations in `@media (prefers-reduced-motion: reduce)` conditionals.",
+    "keyboard_navigation": "Focus rings on buttons, inputs, tabs, and interactive card checkboxes use `focus-visible:ring-2 focus-visible:ring-[#00F0FF] focus-visible:outline-none`.",
+    "data_testids": "All interactive inputs, buttons, filter chips, and submission states must feature explicit data-testid attributes."
+  },
+  "component_hierarchy": [
+    {
+      "path": "frontend/src/components/layout/Navbar.tsx",
+      "description": "Sticky crystal glass nav with animated Halucinate glitch logo, links (Attractions, Pricing, Tech Specs, FAQ, Calculator), Contact CTA button, and Admin Gate link."
+    },
+    {
+      "path": "frontend/src/components/landing/Hero3D.tsx",
+      "description": "The showstopper 3D VR simulation hero featuring interactive Three.js/Canvas head model with glowing cyan visor turning with cursor, kinetic headline, glitch badges, and quick enquiry button."
+    },
+    {
+      "path": "frontend/src/components/landing/EditorialMarquee.tsx",
+      "description": "Kinetic ticker with neon cyan text highlights: 'FREE ROAM VR • 360 DOME THEATER • AI PHOTO BOOTHS • 4D SCARY HOUSE • BESPOKE ACTIVATIONS • TURNKEY FEC DEPLOYMENT'."
+    },
+    {
+      "path": "frontend/src/components/landing/AttractionsBentoGrid.tsx",
+      "description": "9 dynamic attraction cards with category filters, live space/capacity badges, specs popover, pricing, and 1-click 'Add to Enquiry' selection toggle."
+    },
+    {
+      "path": "frontend/src/components/landing/PricingMatrixTable.tsx",
+      "description": "Detailed commercial comparative table showing Purchase Cost vs Rental Day Rate, Footfall capacity, Power requirement, and Payback estimations."
+    },
+    {
+      "path": "frontend/src/components/landing/RoiCalculator.tsx",
+      "description": "Interactive investment & footfall ROI calculator for mall owners and event organizers to simulate ticket pricing, daily footfall, and monthly revenue."
+    },
+    {
+      "path": "frontend/src/components/landing/EnquiryFormSection.tsx",
+      "description": "Comprehensive enquiry wizard with product multi-select pills, budget slider/dropdown, space availability, event date calendar picker, location, and phone/email with live validation and success feedback."
+    },
+    {
+      "path": "frontend/src/components/landing/FaqAccordion.tsx",
+      "description": "Accessible accordion with glass containers and cyan glow indicators."
+    },
+    {
+      "path": "frontend/src/components/landing/Footer.tsx",
+      "description": "Massive typography footer with glowing Halucinate imprint, mall locations in India (Bangalore, Hyderabad, Delhi), contact email, phone, and SEO tags."
+    },
+    {
+      "path": "frontend/src/pages/AdminDashboard.tsx",
+      "description": "Full-fledged admin control panel allowing CRUD operations on products/attractions, photo URLs, enquiry submission log viewer, and SEO Meta/Hashtag configuration."
+    }
+  ],
+  "instructions_to_main_agent": [
+    "Follow dark cyber theme strictly: Page background is #050811, card surface is #0B1120, neon cyan is #00F0FF.",
+    "Implement the 3D VR Headset visual in Hero using Three.js (or high-fidelity interactive Canvas 3D particle mesh) where the VR goggles turn interactively with cursor tracking and neon cyber lighting.",
+    "Ensure all 9 attraction products are pre-seeded in the backend database (backend/seed.py and MongoDB) and dynamic via API with graceful fallback data.",
+    "Connect the Enquiry Form to FastAPI backend (`/api/enquiries`) saving data into Mongo and generating mock Telegram/Email dispatch alerts.",
+    "Include an Admin authentication screen and panel at `/admin` where the admin can add/edit attractions, manage photo URLs, view enquiries, and update SEO hashtags.",
+    "Adhere to data-testid conventions on all key buttons, inputs, dialogs, and table rows for automated verification.",
+    "Format currency in Indian Rupees (INR ₹) with standard lakhs/crores formatting."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": {
+    "no_ai_slop": "Avoid generic centered layouts and gray gradients. Deliver high visual tension, crisp 1px borders (#1E293B / #00F0FF33), layered z-index, and organic kinetic motion.",
+    "no_universal_transition": "Never write `transition: all`. Use specific `transition: transform 0.2s ease, opacity 0.2s ease, border-color 0.2s ease`.",
+    "sonner_toast": "Mount `<Toaster richColors position='bottom-right' theme='dark' />` once and trigger toasts upon enquiry submission and admin CRUD.",
+    "test_attributes": "All forms, inputs, buttons, tab triggers, and card actions must have `data-testid='...'`."
+  }
+}
