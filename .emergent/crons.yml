@@ -1,0 +1,8 @@
+crons:
+  - name: seo-refresh
+    description: "Monthly AI scan proposing fresh SEO hashtags and competitors for admin review"
+    cron: "30 3 1 * *"
+    endpoint: "{{BASE_URL}}/api/cron/seo-refresh"
+    method: POST
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    enabled: true

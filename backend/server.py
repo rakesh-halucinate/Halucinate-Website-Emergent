@@ -32,6 +32,14 @@ from lib.db import client, db, ensure_indexes
 
 logger = logging.getLogger(__name__)
 
+_background_tasks: set = set()
+
+
+def fire_and_forget(coro) -> None:
+    task = asyncio.create_task(coro)
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+
 JWT_SECRET = os.environ["JWT_SECRET"]
 JWT_ALGORITHM = "HS256"
 OWNER_EMAIL = os.environ.get("OWNER_EMAIL", "")
@@ -571,7 +579,7 @@ async def create_enquiry(body: InquiryCreate):
     doc = inq.model_dump()
     await db.enquiries.insert_one(doc)
     doc.pop("_id", None)
-    asyncio.create_task(dispatch_notifications(doc))
+    fire_and_forget(dispatch_notifications(doc))
     return {"status": "success", "id": inq.id}
 
 
@@ -675,7 +683,7 @@ async def bruce_chat(body: ChatIn):
                 {"id": body.session_id},
                 {"$set": {"lead": {"name": name, "email": email}, "summary": ai_summary}},
             )
-            asyncio.create_task(dispatch_notifications(doc))
+            fire_and_forget(dispatch_notifications(doc))
         yield f"data: {json.dumps({'done': True})}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream",
@@ -799,8 +807,7 @@ async def update_seo(body: SeoSettings, admin: dict = Depends(get_admin)):
     return doc
 
 
-@api_router.post("/admin/seo/suggest")
-async def suggest_hashtags(body: SuggestIn, admin: dict = Depends(get_admin)):
+async def generate_seo_suggestions(location: str = "", notes: str = "") -> dict:
     from emergentintegrations.llm.chat import LlmChat, StreamDone, TextDelta, UserMessage
 
     seo = await db.seo.find_one({"id": "seo"}, {"_id": 0}) or DEFAULT_SEO
@@ -809,9 +816,9 @@ async def suggest_hashtags(body: SuggestIn, admin: dict = Depends(get_admin)):
     prompt = (
         "You are an SEO strategist for Halucinate, an Indian immersive-entertainment company that "
         f"builds and installs: {product_names}. "
-        f"Target location/market: {body.location or 'India (malls, gaming centres, resorts)'}. "
+        f"Target location/market: {location or 'India (malls, gaming centres, resorts)'}. "
         f"Known competitors or nearby businesses: {', '.join(seo.get('competitors', [])) or 'not specified'}. "
-        f"Extra context: {body.notes or 'none'}. "
+        f"Extra context: {notes or 'none'}. "
         "Task: (1) list 20 high-impact hashtags for organic reach on Google and AI answer engines "
         "(ChatGPT, Claude, Perplexity, Gemini), each on its own line starting with #. "
         "(2) Then list 5 short 'AI search keyword phrases' a potential customer would type into an AI "
@@ -833,6 +840,118 @@ async def suggest_hashtags(body: SuggestIn, admin: dict = Depends(get_admin)):
     keywords = [ln.lstrip("- ").strip() for ln in out.splitlines() if ln.strip().startswith("- ")]
     competitors = [ln.lstrip("> ").strip() for ln in out.splitlines() if ln.strip().startswith("> ")]
     return {"hashtags": hashtags[:20], "keywords": keywords[:5], "competitors": competitors[:5], "raw": out}
+
+
+@api_router.post("/admin/seo/suggest")
+async def suggest_hashtags(body: SuggestIn, admin: dict = Depends(get_admin)):
+    return await generate_seo_suggestions(body.location, body.notes)
+
+
+@api_router.get("/admin/seo/proposals/latest")
+async def latest_proposal(admin: dict = Depends(get_admin)):
+    doc = await db.seo_proposals.find_one({}, {"_id": 0}, sort=[("created_at", -1)])
+    if not doc:
+        raise HTTPException(status_code=404, detail="No proposals yet")
+    return doc
+
+
+MAX_HASHTAGS = 60
+MAX_COMPETITORS = 25
+
+
+async def _run_seo_refresh(run_id: str) -> None:
+    try:
+        result = await generate_seo_suggestions("", "Monthly scheduled scan — propose fresh, currently relevant tags")
+        seo = await db.seo.find_one({"id": "seo"}, {"_id": 0}) or dict(DEFAULT_SEO)
+
+        existing_tags = list(seo.get("hashtags", []))
+        merged_tags = list(existing_tags)
+        for h in result["hashtags"]:
+            tag = h if h.startswith("#") else f"#{h}"
+            if tag not in merged_tags:
+                merged_tags.append(tag)
+        merged_tags = merged_tags[:MAX_HASHTAGS]
+        new_tags = [t for t in merged_tags if t not in existing_tags]
+
+        existing_comps = list(seo.get("competitors", []))
+        merged_comps = list(existing_comps)
+        for c in result["competitors"]:
+            clean = c.strip()
+            if clean and clean not in merged_comps:
+                merged_comps.append(clean)
+        merged_comps = merged_comps[:MAX_COMPETITORS]
+        new_comps = [c for c in merged_comps if c not in existing_comps]
+
+        seo["hashtags"] = merged_tags
+        seo["competitors"] = merged_comps
+        seo["id"] = "seo"
+        await db.seo.update_one({"id": "seo"}, {"$set": seo}, upsert=True)
+
+        proposal = {"id": str(uuid.uuid4()), "run_id": run_id, **result,
+                    "applied": True, "new_hashtags": new_tags, "new_competitors": new_comps,
+                    "created_at": datetime.now(timezone.utc)}
+        await db.seo_proposals.insert_one(proposal)
+        logger.info(f"SEO auto-refresh applied: +{len(new_tags)} hashtags, +{len(new_comps)} competitors")
+
+        if new_tags or new_comps:
+            logger.info("SEO refresh: sending telegram notification")
+            await send_telegram(
+                "<b>Monthly SEO scan applied automatically</b>\n\n"
+                f"Added {len(new_tags)} fresh hashtags and {len(new_comps)} competitors to halucinate.com.\n\n"
+                f"<b>New hashtags:</b> {escape(' '.join(new_tags[:20]) or '—')}\n"
+                f"<b>New competitors:</b> {escape(', '.join(new_comps) or '—')}"
+            )
+            logger.info("SEO refresh: telegram notification sent")
+            if OWNER_EMAIL:
+                tags_html = " ".join(
+                    f"<span style='display:inline-block;margin:2px;padding:3px 10px;border:1px solid #00f0ff;border-radius:20px;color:#00f0ff;font-size:12px'>{escape(t)}</span>"
+                    for t in new_tags
+                ) or "<span style='color:#8ba2c1'>No new hashtags this month</span>"
+                comps_html = "".join(
+                    f"<li style='margin:3px 0;color:#e6f6ff'>{escape(c)}</li>" for c in new_comps
+                ) or "<li style='color:#8ba2c1'>No new competitors this month</li>"
+                html = (
+                    "<table role='presentation' width='100%' cellpadding='0' cellspacing='0'>"
+                    "<tr><td style='padding:32px;font-family:Arial,sans-serif;background:#050811;color:#e6f6ff'>"
+                    "<p style='font-size:22px;letter-spacing:4px;color:#00f0ff;margin:0 0 18px 0'>Monthly SEO scan applied</p>"
+                    "<p>The scheduled AI scan ran and updated your website automatically.</p>"
+                    f"<p style='margin:18px 0 8px 0'><strong>{len(new_tags)} new hashtags now live:</strong></p>"
+                    f"<div>{tags_html}</div>"
+                    f"<p style='margin:18px 0 8px 0'><strong>{len(new_comps)} new competitors added to tracking:</strong></p>"
+                    f"<ul style='padding-left:18px'>{comps_html}</ul>"
+                    "<p style='margin-top:24px;font-size:12px;color:#8ba2c1'>You can review or remove any of these in the admin panel under SEO &amp; AI Search. Sent by Halucinate.</p>"
+                    "</td></tr></table>"
+                )
+                try:
+                    await send_email(to=OWNER_EMAIL,
+                                     subject=f"Monthly SEO scan applied — {len(new_tags)} new hashtags live",
+                                     html=html)
+                except Exception as e:
+                    logger.error(f"SEO refresh email failed: {e}")
+    except Exception as e:
+        logger.error(f"SEO refresh failed: {e}")
+
+
+@api_router.post("/cron/seo-refresh")
+async def cron_seo_refresh(request: Request):
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    import hmac
+
+    secret = os.environ.get("WEBHOOK_CRON_SECRET", "")
+    auth = request.headers.get("Authorization", "")
+    token = auth[7:] if auth.startswith("Bearer ") else ""
+    if not secret or not token or not hmac.compare_digest(token, secret):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    try:
+        envelope = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid request body")
+    run_id = (envelope or {}).get("run_id") or request.headers.get("X-Webhook-Id") or str(uuid.uuid4())
+    if await db.cron_runs.find_one({"run_id": run_id}):
+        return {"status": "duplicate", "run_id": run_id}
+    await db.cron_runs.insert_one({"run_id": run_id, "received_at": datetime.now(timezone.utc)})
+    fire_and_forget(_run_seo_refresh(run_id))
+    return {"status": "accepted", "run_id": run_id}
 
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}

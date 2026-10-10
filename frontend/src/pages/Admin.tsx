@@ -10,6 +10,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import ChatsTab from "@/pages/admin/ChatsTab";
+import ProposalBanner from "@/pages/admin/ProposalBanner";
 
 type Tab = "products" | "inquiries" | "chats" | "seo";
 
@@ -442,8 +443,10 @@ function SeoTab() {
         </h3>
         <p className="mt-2 text-xs leading-relaxed text-slate-500">
           Bruce's brain scans your live product catalogue and target market to suggest hashtags,
-          AI-search keyword phrases and nearby competitor types to track.
+          AI-search keyword phrases and nearby competitor types to track. A scheduled scan also runs
+          on the 1st of every month and applies fresh hashtags to the website automatically.
         </p>
+        <ProposalBanner />
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <input className={inputCls} value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Target city / region (e.g. Bangalore)" data-testid="seo-suggest-location" />
           <input className={inputCls} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Extra context (optional)" data-testid="seo-suggest-notes" />
