@@ -5,6 +5,8 @@ import { FALLBACK_PRODUCTS, type Product, type SeoPublic } from "@/lib/data";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import Marquee from "@/components/landing/Marquee";
+import PortalBand from "@/components/landing/PortalBand";
+import DomeBand from "@/components/landing/DomeBand";
 import Products from "@/components/landing/Products";
 import PricingTable from "@/components/landing/PricingTable";
 import ImmersiveSection from "@/components/landing/ImmersiveSection";
@@ -48,9 +50,11 @@ export default function Home() {
       <Navbar />
       <Hero />
       <Marquee />
+      <PortalBand />
       <Products products={products} />
       <PricingTable products={products} />
       <ImmersiveSection />
+      <DomeBand />
       <Faq />
       <EnquiryForm products={products} />
       <Footer seo={seo} />

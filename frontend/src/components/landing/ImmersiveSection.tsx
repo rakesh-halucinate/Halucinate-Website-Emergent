@@ -25,13 +25,13 @@ export default function ImmersiveSection() {
             style={{ y: yA }}
             className="absolute left-0 top-4 w-3/4 overflow-hidden rounded-2xl border border-[#00f0ff]/25 shadow-[0_0_60px_rgba(0,240,255,0.15)]"
           >
-            <img src="/assets/hero/vr-motion-person.jpg" alt="Player wearing a Halucinate VR headset in motion" className="h-72 w-full object-cover" loading="lazy" />
+            <img src="/assets/hero/concept-arena.webp" alt="Multiplayer free-roam VR arena in action" className="animate-kenburns h-72 w-full object-cover" loading="lazy" />
           </motion.div>
           <motion.div
             style={{ y: yB }}
             className="absolute bottom-0 right-0 w-2/3 overflow-hidden rounded-2xl border border-[#ff2d78]/25 shadow-[0_0_60px_rgba(255,45,120,0.12)]"
           >
-            <img src="/assets/hero/vr-arena-wide.jpg" alt="Multiplayer free roam VR arena by Halucinate" className="h-64 w-full object-cover" loading="lazy" />
+            <img src="/assets/hero/vr-motion-person.jpg" alt="Player wearing a Halucinate VR headset in motion" className="animate-kenburns h-64 w-full object-cover" loading="lazy" />
           </motion.div>
         </div>
 

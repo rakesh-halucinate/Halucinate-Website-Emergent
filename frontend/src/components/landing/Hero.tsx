@@ -1,11 +1,8 @@
-import { useRef } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, MousePointer2 } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import VRAmbientScene from "./VRAmbientScene";
-import VRPersonRig from "./VRPersonRig";
+import HeroVisual from "./HeroVisual";
 import { scrollToId } from "@/lib/scroll";
-
-type PointerRef = { current: { x: number; y: number } };
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -16,28 +13,16 @@ const LINES = [
 ];
 
 export default function Hero() {
-  const pointer: PointerRef = useRef({ x: 0, y: 0 });
-  const sectionRef = useRef<HTMLElement>(null);
-
-  const onPointerMove = (e: React.PointerEvent) => {
-    const rect = sectionRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    pointer.current.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    pointer.current.y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-  };
-
   return (
     <section
-      ref={sectionRef}
-      onPointerMove={onPointerMove}
       className="scanline relative flex min-h-screen items-center overflow-hidden bg-[#050811]"
       data-testid="hero-section"
     >
-      {/* 3D ambient scene + photo-realistic person rig */}
+      {/* 3D ambient scene + floating headset with orbiting products */}
       <div className="absolute inset-0 opacity-70 md:opacity-100">
         <VRAmbientScene />
       </div>
-      <VRPersonRig pointer={pointer} />
+      <HeroVisual />
       <div className="hero-scrim pointer-events-none absolute inset-0" />
       <div className="bg-cyber-grid pointer-events-none absolute inset-0 opacity-40" />
 
@@ -113,8 +98,8 @@ export default function Hero() {
             transition={{ duration: 1, delay: 1.6 }}
             className="mt-14 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-slate-500"
           >
-            <MousePointer2 className="h-3.5 w-3.5 text-[#00f0ff]/60" />
-            Move your cursor — the headset follows you
+            <Sparkles className="h-3.5 w-3.5 text-[#00f0ff]/60" />
+            9 turnkey attractions · deployed across India
           </motion.div>
         </div>
       </div>

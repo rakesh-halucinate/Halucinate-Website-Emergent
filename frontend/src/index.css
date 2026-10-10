@@ -210,6 +210,42 @@
   transform-origin: center bottom;
 }
 
+@keyframes orbit-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes orbit-spin-rev {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+.animate-orbit { animation: orbit-spin 46s linear infinite; }
+.animate-orbit-rev { animation: orbit-spin-rev 46s linear infinite; }
+
+@keyframes float-tilt {
+  0%, 100% { transform: translateY(0) rotate(-2.5deg); }
+  50% { transform: translateY(-16px) rotate(2.5deg); }
+}
+.animate-float-tilt { animation: float-tilt 7s ease-in-out infinite; }
+
+@keyframes glow-pulse-soft {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.08); }
+}
+.animate-glow-soft { animation: glow-pulse-soft 4.5s ease-in-out infinite; }
+
+@keyframes kenburns {
+  0% { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.12) translate(-1.5%, -1%); }
+}
+.animate-kenburns { animation: kenburns 18s ease-in-out infinite alternate; }
+
+@keyframes ring-warp {
+  0% { transform: translate(-50%, -50%) scale(0.25); opacity: 0; }
+  15% { opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+}
+.warp-ring { animation: ring-warp 3.6s linear infinite; }
+
 @keyframes glint-sweep {
   0%, 80% { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
   84% { opacity: 0.55; }
@@ -237,7 +273,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee, .animate-float, .animate-neon-pulse, .animate-breathe, .animate-glint, .scanline::after,
-  .glitch-layer-a, .glitch-layer-b {
+  .glitch-layer-a, .glitch-layer-b, .animate-orbit, .animate-orbit-rev, .animate-float-tilt,
+  .animate-glow-soft, .animate-kenburns, .warp-ring {
     animation: none;
   }
 }
