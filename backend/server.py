@@ -931,6 +931,55 @@ async def whatsapp_logout(admin: dict = Depends(get_admin)):
         raise HTTPException(status_code=502, detail=f"WhatsApp service unreachable: {e}")
 
 
+@api_router.get("/admin/stats")
+async def admin_stats(admin: dict = Depends(get_admin)):
+    now = datetime.now(timezone.utc)
+
+    def week_key(dt: datetime) -> str:
+        monday = dt - timedelta(days=dt.weekday())
+        return monday.date().isoformat()
+
+    labels = [week_key(now - timedelta(weeks=w)) for w in reversed(range(8))]
+
+    def aware(dt):
+        if dt is None:
+            return None
+        return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+    enquiries = await db.enquiries.find({}, {"_id": 0, "created_at": 1, "status": 1, "chat_summary": 1}).to_list(2000)
+    chats = await db.chat_sessions.find({}, {"_id": 0, "created_at": 1, "lead": 1}).to_list(1000)
+
+    def bucket(docs):
+        counts = {l: 0 for l in labels}
+        for d in docs:
+            ca = aware(d.get("created_at"))
+            if not ca:
+                continue
+            k = week_key(ca)
+            if k in counts:
+                counts[k] += 1
+        return [{"week": l, "count": counts[l]} for l in labels]
+
+    current_week = labels[-1]
+    enq_week = [d for d in bucket(enquiries) if d["week"] == current_week][0]["count"]
+    chat_week = [d for d in bucket(chats) if d["week"] == current_week][0]["count"]
+
+    return {
+        "enquiries_total": len(enquiries),
+        "enquiries_week": enq_week,
+        "chats_total": len(chats),
+        "chats_week": chat_week,
+        "leads_total": sum(1 for e in enquiries if (e.get("chat_summary") or "").strip()),
+        "pipeline": {
+            "new": sum(1 for e in enquiries if (e.get("status") or "new") == "new"),
+            "contacted": sum(1 for e in enquiries if e.get("status") == "contacted"),
+            "closed": sum(1 for e in enquiries if e.get("status") == "closed"),
+        },
+        "weekly_enquiries": bucket(enquiries),
+        "weekly_chats": bucket(chats),
+    }
+
+
 MAX_HASHTAGS = 60
 MAX_COMPETITORS = 25
 

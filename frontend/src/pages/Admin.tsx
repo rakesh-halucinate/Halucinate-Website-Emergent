@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
-import { LayoutGrid, LogOut, Mail, MessageCircle, MessageSquare, Pencil, Plus, Search, Sparkles, Trash2, Upload } from "lucide-react";
+import { BarChart3, LayoutGrid, LogOut, Mail, MessageCircle, MessageSquare, Pencil, Plus, Search, Sparkles, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api";
 import type { Inquiry, Product, SeoPublic } from "@/lib/data";
@@ -12,8 +12,9 @@ import {
 import ChatsTab from "@/pages/admin/ChatsTab";
 import ProposalBanner from "@/pages/admin/ProposalBanner";
 import WhatsAppTab from "@/pages/admin/WhatsAppTab";
+import AnalyticsTab from "@/pages/admin/AnalyticsTab";
 
-type Tab = "products" | "inquiries" | "chats" | "whatsapp" | "seo";
+type Tab = "analytics" | "products" | "inquiries" | "chats" | "whatsapp" | "seo";
 
 const inputCls =
   "w-full rounded-lg border border-[#1e293b] bg-[#050811] px-3.5 py-2.5 text-sm text-white placeholder:text-slate-600 outline-none transition-colors focus:border-[#00f0ff]/60";
@@ -542,7 +543,7 @@ function CompetitorInput({ onAdd }: { onAdd: (c: string) => void }) {
 
 export default function Admin() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>("products");
+  const [tab, setTab] = useState<Tab>("analytics");
   const meQuery = useQuery({ queryKey: ["me"], queryFn: () => apiGet<{ email: string }>("/auth/me"), retry: false });
 
   if (meQuery.isLoading) {
@@ -561,6 +562,7 @@ export default function Admin() {
   };
 
   const TABS: { id: Tab; label: string; icon: typeof LayoutGrid }[] = [
+    { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "products", label: "Products", icon: LayoutGrid },
     { id: "inquiries", label: "Inquiries", icon: Mail },
     { id: "chats", label: "Bruce Chats", icon: MessageSquare },
@@ -610,6 +612,7 @@ export default function Admin() {
           ))}
         </motion.div>
 
+        {tab === "analytics" && <AnalyticsTab />}
         {tab === "products" && <ProductsTab />}
         {tab === "inquiries" && <InquiriesTab />}
         {tab === "chats" && <ChatsTab />}
