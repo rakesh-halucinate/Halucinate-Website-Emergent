@@ -1,14 +1,18 @@
 # Deploy Halucinate on your own VPS (Ubuntu 22.04/24.04)
 
-## Architecture & ports
+## Architecture & ports (chosen to avoid your in-use ports 3000/3300/4000/8000/5432)
 
 | Piece | Port | Public? | Notes |
 |---|---|---|---|
 | nginx | 80 / 443 | YES | Serves built frontend, proxies `/api` → backend |
-| FastAPI backend | 8001 | no (localhost) | uvicorn |
-| WhatsApp service | 3002 | no (localhost) | Node + Baileys; never expose publicly |
-| MongoDB | 27017 | no (localhost) | or use MongoDB Atlas |
-| Vite dev server | 3000 | dev only | not used in production |
+| FastAPI backend | **8101** | no (localhost) | uvicorn; free on your VPS |
+| WhatsApp service | **3102** | no (localhost) | Node + Baileys; PORT env configurable; never expose |
+| MongoDB | 27017 | no (localhost) | free on your VPS; or use MongoDB Atlas |
+| Vite dev server | 3000 | dev only | taken on your VPS — irrelevant, not used in production |
+
+Cloudflare note: you already run 3 cloudflared tunnels. You can serve this site
+the same way — point a tunnel at nginx (http://localhost:80) and skip opening
+80/443 in the firewall entirely. Direct nginx + certbot works too; both are below.
 
 ## 1. Server prep
 
@@ -56,7 +60,7 @@ TELEGRAM_BOT_TOKEN="<bot token>"
 TELEGRAM_CHAT_ID="<chat id>"
 EMERGENT_LLM_KEY="<your universal LLM key>"
 WEBHOOK_CRON_SECRET="<generate: openssl rand -hex 24>"
-WHATSAPP_SERVICE_URL="http://localhost:3002"
+WHATSAPP_SERVICE_URL="http://localhost:3102"
 WHATSAPP_ALERT_NUMBERS="+919632121215,+919880368600"
 ```
 
@@ -74,7 +78,7 @@ After=network.target mongod.service
 
 [Service]
 WorkingDirectory=/var/www/halucinate/backend
-ExecStart=/var/www/halucinate/backend/.venv/bin/uvicorn server:app --host 0.0.0.0 --port 8001
+ExecStart=/var/www/halucinate/backend/.venv/bin/uvicorn server:app --host 127.0.0.1 --port 8101
 Restart=always
 RestartSec=3
 
@@ -90,6 +94,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=/var/www/halucinate/whatsapp-service
+Environment=PORT=3102
 ExecStart=/usr/bin/node index.js
 Restart=always
 RestartSec=5
@@ -114,7 +119,7 @@ server {
     index index.html;
 
     location /api/ {
-        proxy_pass http://127.0.0.1:8001;
+        proxy_pass http://127.0.0.1:8101;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -131,25 +136,45 @@ server {
 ```bash
 sudo ln -s /etc/nginx/sites-available/halucinate /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
+```
+
+## 6. Go public — pick ONE
+
+**Option A — direct (open firewall):**
+```bash
+sudo ufw allow 80/tcp && sudo ufw allow 443/tcp
 sudo apt install -y certbot python3-certbot-nginx
 sudo certbot --nginx -d halucinate.com -d www.halucinate.com
 ```
+DNS: A record `halucinate.com` → VPS IP, `www` CNAME → `halucinate.com`.
 
-Point your DNS: A record `halucinate.com` → VPS IP (and `www` CNAME → `halucinate.com`).
+**Option B — Cloudflare tunnel (matches your existing setup, no open ports):**
+```bash
+cloudflared tunnel create halucinate
+# ~/.cloudflared/config.yml:
+#   tunnel: <tunnel-id>
+#   credentials-file: /root/.cloudflared/<tunnel-id>.json
+#   ingress:
+#     - hostname: halucinate.com
+#       service: http://localhost:80
+#     - hostname: www.halucinate.com
+#       service: http://localhost:80
+#     - service: http_status:404
+cloudflared tunnel route dns halucinate halucinate.com
+cloudflared tunnel route dns halucinate www.halucinate.com
+sudo cloudflared service install
+```
+(Then in Cloudflare set SSL/TLS mode to Full.)
 
-## 6. Monthly SEO cron (replaces .emergent/crons.yml on a VPS)
+## 7. Monthly SEO cron (replaces .emergent/crons.yml on a VPS)
 
 ```bash
 crontab -e
 # 1st of every month, 09:00 IST (03:30 UTC)
-30 3 1 * * curl -s -X POST https://halucinate.com/api/cron/seo-refresh \
-  -H "Authorization: Bearer <WEBHOOK_CRON_SECRET>" \
-  -H "Content-Type: application/json" \
-  -d '{"run_id":"cron-$(date +\%Y\%m)":"'"$(date +%Y%m)"'"}'
+30 3 1 * * curl -s -X POST https://halucinate.com/api/cron/seo-refresh -H "Authorization: Bearer <WEBHOOK_CRON_SECRET>" -H "Content-Type: application/json" -d "{\"run_id\":\"cron-$(date +\%Y\%m)\"}"
 ```
-(simpler: use a fixed suffix per month, e.g. `-d "{\"run_id\":\"cron-$(date +\\%Y\\%m)\"}"`)
 
-## 7. First-run checklist
+## 8. First-run checklist
 
 1. `curl https://halucinate.com/api/` → `{"message":"Halucinate API"}`
 2. Admin: https://halucinate.com/admin/login (ADMIN_EMAIL / ADMIN_PASSWORD)
