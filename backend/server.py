@@ -920,6 +920,17 @@ async def whatsapp_test(admin: dict = Depends(get_admin)):
         raise HTTPException(status_code=502, detail=f"WhatsApp service unreachable: {e}")
 
 
+@api_router.post("/admin/whatsapp/logout")
+async def whatsapp_logout(admin: dict = Depends(get_admin)):
+    svc = os.environ.get("WHATSAPP_SERVICE_URL", "")
+    try:
+        async with httpx.AsyncClient(timeout=20) as c:
+            resp = await c.post(f"{svc}/logout")
+        return resp.json()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"WhatsApp service unreachable: {e}")
+
+
 MAX_HASHTAGS = 60
 MAX_COMPETITORS = 25
 

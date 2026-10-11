@@ -1,13 +1,30 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { MessageCircle, RefreshCw, Send } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { LogOut, MessageCircle, RefreshCw, Send } from "lucide-react";
 import { toast } from "sonner";
 import { apiGet, apiPost } from "@/lib/api";
 
 type WaStatus = { connected: boolean; user?: string | null; needs_scan?: boolean; error?: string };
 
 export default function WhatsAppTab() {
+  const qc = useQueryClient();
   const [sending, setSending] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const logout = async () => {
+    if (!window.confirm("Unlink WhatsApp? Enquiry alerts will stop until you scan a fresh QR code.")) return;
+    setLoggingOut(true);
+    try {
+      await apiPost("/admin/whatsapp/logout");
+      toast.success("WhatsApp unlinked — scan the new QR to reconnect");
+      qc.invalidateQueries({ queryKey: ["wa-status"] });
+      qc.invalidateQueries({ queryKey: ["wa-qr"] });
+    } catch {
+      toast.error("Logout failed — try again");
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   const statusQuery = useQuery({
     queryKey: ["wa-status"],
@@ -95,6 +112,15 @@ export default function WhatsAppTab() {
             >
               <Send className="h-3.5 w-3.5" />
               {sending ? "Sending…" : "Send Test Alert"}
+            </button>
+            <button
+              onClick={logout}
+              disabled={loggingOut}
+              className="mt-4 ml-3 inline-flex items-center gap-2 rounded-full border border-[#ff4466]/50 px-5 py-2.5 font-heading text-xs font-bold uppercase tracking-[0.15em] text-[#ff4466] transition-colors duration-200 hover:bg-[#ff4466]/10 disabled:opacity-50"
+              data-testid="wa-logout"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              {loggingOut ? "Unlinking…" : "Unlink WhatsApp"}
             </button>
           </div>
         )}

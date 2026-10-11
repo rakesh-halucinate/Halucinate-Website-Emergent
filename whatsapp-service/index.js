@@ -90,6 +90,28 @@ app.post('/send', async (req, res) => {
   res.json({ success: results.every((r) => r.ok), results });
 });
 
+app.post('/logout', async (req, res) => {
+  try {
+    if (sock) {
+      try { await sock.logout(); } catch (e) { console.log('logout error:', e.message); }
+    }
+  } finally {
+    connected = false;
+    qrDataUrl = null;
+    if (sock) {
+      try { sock.ev.removeAllListeners('connection.update'); } catch (e) {}
+      try { sock.ev.removeAllListeners('creds.update'); } catch (e) {}
+      try { sock.end(); } catch (e) {}
+    }
+    sock = null;
+    connecting = false;
+    require('fs').rmSync('/app/whatsapp-service/auth_info', { recursive: true, force: true });
+    console.log('Logged out and session wiped — generating fresh QR');
+    setTimeout(init, 1500);
+    res.json({ success: true });
+  }
+});
+
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
   console.log(`WhatsApp alert service on :${PORT}`);
