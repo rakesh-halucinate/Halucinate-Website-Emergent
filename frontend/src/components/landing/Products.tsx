@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Plus } from "lucide-react";
 import type { Product } from "@/lib/data";
@@ -11,6 +12,20 @@ function addToEnquiry(name: string) {
 }
 
 export default function Products({ products }: { products: Product[] }) {
+  const [highlight, setHighlight] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const chip = ((e as CustomEvent<string>).detail || "").toLowerCase();
+      const match = products.find((p) => p.name.toLowerCase().includes(chip));
+      if (!match) return;
+      scrollToId(`product-${match.id}`);
+      setHighlight(match.id);
+      setTimeout(() => setHighlight(null), 2600);
+    };
+    window.addEventListener("hlc:goto-product", handler);
+    return () => window.removeEventListener("hlc:goto-product", handler);
+  }, [products]);
   return (
     <section id="products" className="relative mx-auto max-w-7xl px-5 py-24 lg:px-8 lg:py-32" data-testid="products-section">
       <motion.div
@@ -38,9 +53,12 @@ export default function Products({ products }: { products: Product[] }) {
             transition={{ duration: 0.65, ease: EASE, delay: (i % 3) * 0.08 }}
             viewport={{ once: true, margin: "-60px" }}
             whileHover={{ y: -6 }}
-            className={`group relative flex flex-col overflow-hidden rounded-2xl border border-[#1e293b] bg-[#0b1120] transition-[border-color,box-shadow] duration-300 hover:border-[#00f0ff]/50 hover:shadow-[0_0_40px_rgba(0,240,255,0.12)] ${
-              i === 0 ? "md:col-span-2" : ""
-            }`}
+            id={`product-${p.id}`}
+            className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-[#0b1120] transition-[border-color,box-shadow] duration-300 hover:border-[#00f0ff]/50 hover:shadow-[0_0_40px_rgba(0,240,255,0.12)] ${
+              highlight === p.id
+                ? "border-[#00f0ff] shadow-[0_0_50px_rgba(0,240,255,0.35)]"
+                : "border-[#1e293b]"
+            } ${i === 0 ? "md:col-span-2" : ""}`}
             data-testid={`product-card-${p.id}`}
           >
             <div className={`relative overflow-hidden ${i === 0 ? "h-64 lg:h-80" : "h-48"}`}>

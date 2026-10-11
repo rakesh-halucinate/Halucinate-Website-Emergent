@@ -46,9 +46,13 @@ export default function HeroVisual() {
                 }}
               >
                 <div className="animate-orbit-rev">
-                  <span className="inline-block -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full border border-[#00f0ff]/35 bg-[#050811]/85 px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[#00f0ff] shadow-[0_0_18px_rgba(0,240,255,0.2)] backdrop-blur-md">
+                  <button
+                    onClick={() => window.dispatchEvent(new CustomEvent("hlc:goto-product", { detail: name }))}
+                    className="pointer-events-auto inline-block -translate-x-1/2 -translate-y-1/2 cursor-pointer whitespace-nowrap rounded-full border border-[#00f0ff]/35 bg-[#050811]/85 px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[#00f0ff] shadow-[0_0_18px_rgba(0,240,255,0.2)] backdrop-blur-md transition-colors duration-200 hover:bg-[#00f0ff] hover:text-[#050811]"
+                    data-testid={`orbit-chip-${name.toLowerCase().replace(/\s+/g, "-")}`}
+                  >
                     {name}
-                  </span>
+                  </button>
                 </div>
               </div>
             );

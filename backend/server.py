@@ -570,6 +570,34 @@ async def dispatch_notifications(inq: dict) -> None:
         tg += "\n\n<b>Bruce AI summary:</b>\n" + escape(inq["chat_summary"].strip())
     await send_telegram(tg)
 
+    wa_lines = [
+        "New Halucinate Enquiry", "",
+        f"Name: {inq['name']}",
+        f"Email: {inq['email']}",
+        f"Mobile: {inq['mobile']}",
+        f"Products: {', '.join(inq['products']) or 'General'}",
+        f"Message: {inq['message'][:400]}",
+    ]
+    if inq.get("budget"):
+        wa_lines.insert(4, f"Budget: {inq['budget']}")
+    if (inq.get("chat_summary") or "").strip():
+        wa_lines += ["", "Bruce AI summary:", inq["chat_summary"].strip()]
+    await send_whatsapp("\n".join(wa_lines))
+
+
+async def send_whatsapp(text: str) -> None:
+    svc = os.environ.get("WHATSAPP_SERVICE_URL", "")
+    nums = [n.strip() for n in os.environ.get("WHATSAPP_ALERT_NUMBERS", "").split(",") if n.strip()]
+    if not svc or not nums:
+        return
+    try:
+        async with httpx.AsyncClient(timeout=15) as c:
+            resp = await c.post(f"{svc}/send", json={"numbers": nums, "message": text})
+            if resp.status_code != 200:
+                logger.warning(f"WhatsApp send skipped: {resp.status_code} {resp.text[:150]}")
+    except Exception as e:
+        logger.warning(f"WhatsApp send error: {e}")
+
 
 @api_router.post("/enquiries", status_code=201)
 async def create_enquiry(body: InquiryCreate):
@@ -853,6 +881,43 @@ async def latest_proposal(admin: dict = Depends(get_admin)):
     if not doc:
         raise HTTPException(status_code=404, detail="No proposals yet")
     return doc
+
+
+@api_router.get("/admin/whatsapp/status")
+async def whatsapp_status(admin: dict = Depends(get_admin)):
+    svc = os.environ.get("WHATSAPP_SERVICE_URL", "")
+    try:
+        async with httpx.AsyncClient(timeout=10) as c:
+            resp = await c.get(f"{svc}/status")
+        return resp.json()
+    except Exception as e:
+        return {"connected": False, "error": str(e)}
+
+
+@api_router.get("/admin/whatsapp/qr")
+async def whatsapp_qr(admin: dict = Depends(get_admin)):
+    svc = os.environ.get("WHATSAPP_SERVICE_URL", "")
+    try:
+        async with httpx.AsyncClient(timeout=10) as c:
+            resp = await c.get(f"{svc}/qr")
+        return resp.json()
+    except Exception as e:
+        return {"qr": None, "error": str(e)}
+
+
+@api_router.post("/admin/whatsapp/test")
+async def whatsapp_test(admin: dict = Depends(get_admin)):
+    svc = os.environ.get("WHATSAPP_SERVICE_URL", "")
+    nums = [n.strip() for n in os.environ.get("WHATSAPP_ALERT_NUMBERS", "").split(",") if n.strip()]
+    try:
+        async with httpx.AsyncClient(timeout=20) as c:
+            resp = await c.post(f"{svc}/send", json={
+                "numbers": nums,
+                "message": "Halucinate alerts test — WhatsApp enquiry notifications are live. You will receive every new enquiry here, along with Telegram and email.",
+            })
+        return resp.json()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"WhatsApp service unreachable: {e}")
 
 
 MAX_HASHTAGS = 60
