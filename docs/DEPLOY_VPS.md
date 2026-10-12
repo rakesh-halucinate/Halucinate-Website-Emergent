@@ -47,8 +47,8 @@ cd ../whatsapp-service && yarn install
 ```
 MONGO_URL="mongodb://localhost:27017"
 DB_NAME="halucinate"
-CORS_ORIGINS="https://halucinate.com"
-APP_URL=https://halucinate.com
+CORS_ORIGINS="https://halucinate.rakeshanjanappa.com"
+APP_URL=https://halucinate.rakeshanjanappa.com
 JWT_SECRET="<generate: openssl rand -hex 32>"
 ADMIN_EMAIL="rakesh@halucinate.com"
 ADMIN_PASSWORD="<choose a strong password>"
@@ -113,7 +113,7 @@ sudo systemctl enable --now halucinate-backend halucinate-whatsapp
 ```nginx
 server {
     listen 80;
-    server_name halucinate.com www.halucinate.com;
+    server_name halucinate.rakeshanjanappa.com;
 
     root /var/www/halucinate/frontend/dist;
     index index.html;
@@ -123,6 +123,7 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;
         proxy_buffering off;            # required for Bruce chat SSE streaming
         proxy_read_timeout 300s;
     }
@@ -138,49 +139,57 @@ sudo ln -s /etc/nginx/sites-available/halucinate /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-## 6. Go public — pick ONE
+## 6. Go public via Cloudflare tunnel (matches your existing setup)
 
-**Option A — direct (open firewall):**
 ```bash
-sudo ufw allow 80/tcp && sudo ufw allow 443/tcp
-sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d halucinate.com -d www.halucinate.com
-```
-DNS: A record `halucinate.com` → VPS IP, `www` CNAME → `halucinate.com`.
-
-**Option B — Cloudflare tunnel (matches your existing setup, no open ports):**
-```bash
-cloudflared tunnel create halucinate
-# ~/.cloudflared/config.yml:
+cloudflared tunnel create halucinate-site
+# ~/.cloudflared/config-halucinate.yml:
 #   tunnel: <tunnel-id>
 #   credentials-file: /root/.cloudflared/<tunnel-id>.json
 #   ingress:
-#     - hostname: halucinate.com
-#       service: http://localhost:80
-#     - hostname: www.halucinate.com
+#     - hostname: halucinate.rakeshanjanappa.com
 #       service: http://localhost:80
 #     - service: http_status:404
-cloudflared tunnel route dns halucinate halucinate.com
-cloudflared tunnel route dns halucinate www.halucinate.com
-sudo cloudflared service install
+cloudflared tunnel route dns halucinate-site halucinate.rakeshanjanappa.com
+# run it alongside your other tunnels, e.g.:
+cloudflared --config ~/.cloudflared/config-halucinate.yml service install
 ```
-(Then in Cloudflare set SSL/TLS mode to Full.)
+In Cloudflare Zero Trust → Networks → Tunnels you can do the same via the dashboard:
+Public Hostname = `halucinate.rakeshanjanappa.com` → Service `http://localhost:80`.
+Set SSL/TLS mode to **Full** for the rakeshanjanappa.com zone.
+
+## 6b. Redirect halucinate.com → halucinate.rakeshanjanappa.com
+
+In the halucinate.com Cloudflare zone (add the domain to Cloudflare if not yet):
+1. DNS: create a proxied A record `halucinate.com` → `192.0.2.1` (dummy — the redirect intercepts it; proxied = orange cloud ON)
+2. Rules → Redirect Rules → create rule: hostname equals `halucinate.com` → **301** to `https://halucinate.rakeshanjanappa.com` (preserve query string ON)
+3. (optional) same for `www.halucinate.com`
+
+This keeps https://halucinate.rakeshanjanappa.com as the canonical site (all SEO tags already point there).
+
+**Alternative — direct (no tunnel):** open firewall 80/443, certbot:
+```bash
+sudo ufw allow 80/tcp && sudo ufw allow 443/tcp
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d halucinate.rakeshanjanappa.com
+```
+DNS: A record `halucinate.rakeshanjanappa.com` → VPS IP.
 
 ## 7. Monthly SEO cron (replaces .emergent/crons.yml on a VPS)
 
 ```bash
 crontab -e
 # 1st of every month, 09:00 IST (03:30 UTC)
-30 3 1 * * curl -s -X POST https://halucinate.com/api/cron/seo-refresh -H "Authorization: Bearer <WEBHOOK_CRON_SECRET>" -H "Content-Type: application/json" -d "{\"run_id\":\"cron-$(date +\%Y\%m)\"}"
+30 3 1 * * curl -s -X POST https://halucinate.rakeshanjanappa.com/api/cron/seo-refresh -H "Authorization: Bearer <WEBHOOK_CRON_SECRET>" -H "Content-Type: application/json" -d "{\"run_id\":\"cron-$(date +\%Y\%m)\"}"
 ```
 
 ## 8. First-run checklist
 
-1. `curl https://halucinate.com/api/` → `{"message":"Halucinate API"}`
-2. Admin: https://halucinate.com/admin/login (ADMIN_EMAIL / ADMIN_PASSWORD)
+1. `curl https://halucinate.rakeshanjanappa.com/api/` → `{"message":"Halucinate API"}`
+2. Admin: https://halucinate.rakeshanjanappa.com/admin/login (ADMIN_EMAIL / ADMIN_PASSWORD)
 3. WhatsApp: Admin → WhatsApp tab → scan QR (Linked Devices)
 4. Submit enquiry on the site → confirm email + Telegram + WhatsApp arrive
-5. Submit sitemap in Google Search Console: https://halucinate.com/sitemap.xml
+5. Submit sitemap in Google Search Console: https://halucinate.rakeshanjanappa.com/sitemap.xml
 
 ## Updating
 

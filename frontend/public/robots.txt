@@ -23,4 +23,4 @@ Allow: /
 Disallow: /api/
 Disallow: /admin
 
-Sitemap: https://halucinate.com/sitemap.xml
+Sitemap: https://halucinate.rakeshanjanappa.com/sitemap.xml
