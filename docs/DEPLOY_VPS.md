@@ -32,8 +32,9 @@ cd /var/www && git clone https://github.com/rakesh-halucinate/Halucinate-Website
 cd halucinate
 
 # backend
-cd backend && python3.11 -m venv .venv && source .venv/bin/activate
+cd backend && python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+pip install ../vendor/emergentintegrations   # vendored Emergent library (not on public PyPI)
 
 # frontend (build static bundle)
 cd ../frontend && yarn install && yarn build   # outputs frontend/dist
