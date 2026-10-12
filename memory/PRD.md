@@ -65,7 +65,7 @@ Rebuild https://halucinate.rakeshanjanappa.com/ with identical content and funct
 ## Pending / Notes
 - Emails send from platform's default sender address (user approved); reply-to is rakesh@halucinate.com
 - Admin SEO meta fields are stored/documented in DB; the served static head uses the same defaults (hardcoded in index.html) — dynamic head-injection would need SSR or deploy-time prerender
-- Canonical/sitemap/OG all point to https://halucinate.rakeshanjanappa.com (user decision 2026-10-11: deploy at that subdomain via their existing Cloudflare tunnel; halucinate.com will 301-redirect to it via a Cloudflare Redirect Rule — guide section 6b). The old site at that subdomain is replaced by this one.
+- Self-host single-port mode (2026-10-11): backend serves frontend/dist as SPA when it exists (server.py SPAStaticFiles mount, guarded — inert on Emergent). User decision: deploy at halucinate.rakeshanjanappa.com via existing Cloudflare tunnel; halucinate.com 301-redirects to it (Cloudflare Redirect Rule, guide section 6b); old site at that subdomain is replaced. Site port on VPS: 3000 (replaces old pm2 halucinate-web; tunnel → http://localhost:3000). Canonical/sitemap/OG all point to https://halucinate.rakeshanjanappa.com
 
 ## Backlog
 - P0: Attach halucinate.com domain + enable crawler prerender toggle on deploy + GSC sitemap submission (manual platform steps)

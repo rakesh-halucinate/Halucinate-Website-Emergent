@@ -1,14 +1,14 @@
 # Deploy Halucinate on your own VPS (Ubuntu 22.04/24.04)
 
-## Architecture & ports (chosen to avoid your in-use ports 3000/3300/4000/8000/5432)
+## Architecture & ports (site lives on ONE port — 3000)
 
 | Piece | Port | Public? | Notes |
 |---|---|---|---|
-| nginx | 80 / 443 | YES | Serves built frontend, proxies `/api` → backend |
-| FastAPI backend | **8101** | no (localhost) | uvicorn; free on your VPS |
+| Cloudflare tunnel | — | YES | outbound only; no firewall ports to open |
+| FastAPI backend | **3000** | tunnel only | uvicorn — single-port mode serves the ENTIRE site (frontend + /api). Port 3000 is held by your old `pm2 halucinate-web` — the new site replaces it (see step 4 note) |
 | WhatsApp service | **3102** | no (localhost) | Node + Baileys; PORT env configurable; never expose |
 | MongoDB | 27017 | no (localhost) | free on your VPS; or use MongoDB Atlas |
-| Vite dev server | 3000 | dev only | taken on your VPS — irrelevant, not used in production |
+| Vite dev server | — | dev only | not used in production (we serve the built `dist`) |
 
 Cloudflare note: you already run 3 cloudflared tunnels. You can serve this site
 the same way — point a tunnel at nginx (http://localhost:80) and skip opening
@@ -78,7 +78,7 @@ After=network.target mongod.service
 
 [Service]
 WorkingDirectory=/var/www/halucinate/backend
-ExecStart=/var/www/halucinate/backend/.venv/bin/uvicorn server:app --host 127.0.0.1 --port 8101
+ExecStart=/var/www/halucinate/backend/.venv/bin/uvicorn server:app --host 127.0.0.1 --port 3000
 Restart=always
 RestartSec=3
 
@@ -105,11 +105,31 @@ WantedBy=multi-user.target
 
 ```bash
 sudo systemctl daemon-reload
+
+# free up port 3000 from the OLD Halucinate website first:
+pm2 stop halucinate-web && pm2 delete halucinate-web && pm2 save
+
 sudo systemctl enable --now halucinate-backend halucinate-whatsapp
 ```
 
-## 5. nginx — /etc/nginx/sites-available/halucinate
+## 5. One port is enough (recommended for your Cloudflare setup)
 
+After `yarn build` (step 2), the backend automatically serves the built frontend
+plus the API from the SAME process — no nginx needed:
+
+**Your Cloudflare tunnel target is simply: `http://localhost:3000`**
+
+```
+Public hostname: halucinate.rakeshanjanappa.com  →  Service: http://localhost:3000
+```
+
+That's the only port you configure in Cloudflare. The firewall never sees it
+(tunnels connect outbound). Skip to section 7.
+
+<details>
+<summary>Alternative: nginx on port 80 (only if you prefer it)</summary>
+
+/etc/nginx/sites-available/halucinate:
 ```nginx
 server {
     listen 80;
@@ -119,7 +139,7 @@ server {
     index index.html;
 
     location /api/ {
-        proxy_pass http://127.0.0.1:8101;
+        proxy_pass http://127.0.0.1:3000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -138,9 +158,18 @@ server {
 sudo ln -s /etc/nginx/sites-available/halucinate /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 ```
+</details>
 
-## 6. Go public via Cloudflare tunnel (matches your existing setup)
+## 6. Cloudflare tunnel config (matches your existing setup)
 
+If you used the single-port mode in section 5, just add a public hostname in your
+EXISTING tunnel dashboard — nothing else to install:
+
+```
+Public hostname: halucinate.rakeshanjanappa.com  →  Service: http://localhost:3000
+```
+
+CLI equivalent (new tunnel):
 ```bash
 cloudflared tunnel create halucinate-site
 # ~/.cloudflared/config-halucinate.yml:
@@ -148,14 +177,14 @@ cloudflared tunnel create halucinate-site
 #   credentials-file: /root/.cloudflared/<tunnel-id>.json
 #   ingress:
 #     - hostname: halucinate.rakeshanjanappa.com
-#       service: http://localhost:80
+#       service: http://localhost:3000
 #     - service: http_status:404
 cloudflared tunnel route dns halucinate-site halucinate.rakeshanjanappa.com
 # run it alongside your other tunnels, e.g.:
 cloudflared --config ~/.cloudflared/config-halucinate.yml service install
 ```
-In Cloudflare Zero Trust → Networks → Tunnels you can do the same via the dashboard:
-Public Hostname = `halucinate.rakeshanjanappa.com` → Service `http://localhost:80`.
+In Cloudflare Zero Trust → Networks → Tunnels:
+Public Hostname = `halucinate.rakeshanjanappa.com` → Service `http://localhost:3000`.
 Set SSL/TLS mode to **Full** for the rakeshanjanappa.com zone.
 
 ## 6b. Redirect halucinate.com → halucinate.rakeshanjanappa.com

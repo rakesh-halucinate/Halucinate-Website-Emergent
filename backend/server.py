@@ -1121,6 +1121,23 @@ async def serve_file(path: str):
 
 app.include_router(api_router)
 
+# Self-host single-port mode (VPS): when frontend/dist exists, serve the whole
+# site from this same process so one port (default 8101) is enough behind a
+# Cloudflare tunnel. On Emergent the dist folder does not exist, so this is inert.
+DIST_DIR = ROOT_DIR.parent / "frontend" / "dist"
+if DIST_DIR.is_dir():
+    from fastapi.staticfiles import StaticFiles
+    from starlette.exceptions import HTTPException as StarletteHTTPException
+
+    class SPAStaticFiles(StaticFiles):
+        async def get_response(self, path: str, scope):
+            try:
+                return await super().get_response(path, scope)
+            except StarletteHTTPException:
+                return await super().get_response("index.html", scope)
+
+    app.mount("/", SPAStaticFiles(directory=str(DIST_DIR), html=True), name="spa")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
