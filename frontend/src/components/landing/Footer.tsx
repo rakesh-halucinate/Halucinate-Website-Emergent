@@ -1,11 +1,12 @@
-import type { SeoPublic } from "@/lib/data";
+import { Link } from "react-router-dom";
+import { productPath, type Product, type SeoPublic } from "@/lib/data";
 import { scrollToId } from "@/lib/scroll";
 
-export default function Footer({ seo }: { seo: SeoPublic | null }) {
+export default function Footer({ seo, products = [] }: { seo: SeoPublic | null; products?: Product[] }) {
   return (
     <footer className="relative overflow-hidden border-t border-[#00f0ff]/15 bg-[#04060d]" data-testid="site-footer">
       <div className="mx-auto max-w-7xl px-5 pb-10 pt-16 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="grid gap-12 lg:grid-cols-[1.4fr_1.2fr_0.8fr_1fr]">
           <div>
             <img src="/assets/brand/halucinate-white.png" alt="Halucinate" className="h-10 w-auto mix-blend-screen" />
             <p className="mt-5 max-w-md text-sm leading-relaxed text-slate-400">
@@ -28,6 +29,22 @@ export default function Footer({ seo }: { seo: SeoPublic | null }) {
               </a>
             </div>
           </div>
+
+          <nav aria-label="Products">
+            <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.25em] text-slate-500">Products</p>
+            <div className="flex flex-col gap-2.5">
+              {products.map((p) => (
+                <Link
+                  key={p.id}
+                  to={productPath(p)}
+                  className="w-fit text-sm text-slate-400 transition-colors duration-200 hover:text-[#00f0ff]"
+                  data-testid={`footer-product-${p.id}`}
+                >
+                  {p.name}
+                </Link>
+              ))}
+            </div>
+          </nav>
 
           <div>
             <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.25em] text-slate-500">Explore</p>

@@ -10,6 +10,15 @@ export interface Product {
   created_at?: string;
 }
 
+/** URL slug for a product. Must match slugify() in backend/seo_pages.py. */
+export function slugify(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+export function productPath(p: Pick<Product, "name">): string {
+  return `/products/${slugify(p.name)}`;
+}
+
 export interface SeoPublic {
   meta_title: string;
   meta_description: string;
