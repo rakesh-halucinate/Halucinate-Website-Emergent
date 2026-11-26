@@ -1126,15 +1126,88 @@ app.include_router(api_router)
 # Cloudflare tunnel. On Emergent the dist folder does not exist, so this is inert.
 DIST_DIR = ROOT_DIR.parent / "frontend" / "dist"
 if DIST_DIR.is_dir():
+    from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
     from fastapi.staticfiles import StaticFiles
     from starlette.exceptions import HTTPException as StarletteHTTPException
+
+    import seo_pages
+
+    INDEX_HTML = (DIST_DIR / "index.html").read_text(encoding="utf-8")
+    HTML_HEADERS = {"Cache-Control": "no-cache"}
+
+    async def _catalogue() -> list:
+        """Products for SEO rendering; the seed list keeps pages useful if Mongo is down."""
+        try:
+            docs = await db.products.find({}, {"_id": 0}).sort("sort_order", 1).to_list(100)
+            if docs:
+                return docs
+        except Exception as e:
+            logger.error(f"SEO catalogue lookup failed: {e}")
+        return SEED_PRODUCTS
+
+    @app.middleware("http")
+    async def canonical_host(request: Request, call_next):
+        # Old hostnames listed in REDIRECT_HOSTS 301 to SITE_URL, so search
+        # engines consolidate every link onto one domain.
+        host = request.headers.get("host", "").split(":")[0].lower()
+        if host and host in seo_pages.redirect_hosts() and not request.url.path.startswith("/api/"):
+            target = seo_pages.site_url() + request.url.path
+            if request.url.query:
+                target += "?" + request.url.query
+            return RedirectResponse(target, status_code=301)
+        return await call_next(request)
+
+    @app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
+    async def seo_home():
+        products = await _catalogue()
+        try:
+            seo = await db.seo.find_one({"id": "seo"}, {"_id": 0})
+        except Exception:
+            seo = None
+        return HTMLResponse(seo_pages.render_home(INDEX_HTML, products, seo or DEFAULT_SEO,
+                                                  seo_pages.site_url()), headers=HTML_HEADERS)
+
+    @app.api_route("/products/{slug}", methods=["GET", "HEAD"], include_in_schema=False)
+    async def seo_product(slug: str):
+        products = await _catalogue()
+        site = seo_pages.site_url()
+        product = seo_pages.find_product(products, slug)
+        if product is None:
+            return HTMLResponse(seo_pages.render_not_found(INDEX_HTML, products, site, f"/products/{slug}"),
+                                status_code=404, headers=HTML_HEADERS)
+        return HTMLResponse(seo_pages.render_product(INDEX_HTML, product, products, site),
+                            headers=HTML_HEADERS)
+
+    @app.api_route("/sitemap.xml", methods=["GET", "HEAD"], include_in_schema=False)
+    async def seo_sitemap():
+        return RawResponse(seo_pages.sitemap_xml(await _catalogue(), seo_pages.site_url()),
+                           media_type="application/xml")
+
+    @app.api_route("/robots.txt", methods=["GET", "HEAD"], include_in_schema=False)
+    async def seo_robots():
+        return PlainTextResponse(seo_pages.robots_txt(seo_pages.site_url()))
+
+    @app.api_route("/llms.txt", methods=["GET", "HEAD"], include_in_schema=False)
+    async def seo_llms():
+        return PlainTextResponse(seo_pages.llms_txt(await _catalogue(), seo_pages.site_url()))
+
+    SPA_ROUTES = {"admin", "admin/login"}  # client-side routes with no file behind them
 
     class SPAStaticFiles(StaticFiles):
         async def get_response(self, path: str, scope):
             try:
                 return await super().get_response(path, scope)
             except StarletteHTTPException:
-                return await super().get_response("index.html", scope)
+                clean = path.strip("/")
+                site = seo_pages.site_url()
+                if clean in SPA_ROUTES:
+                    # Private console: serve the app, keep it out of search results.
+                    html = seo_pages.render_index(INDEX_HTML, site=site, path="/" + clean, noindex=True)
+                    return HTMLResponse(html, headers=HTML_HEADERS)
+                # Anything else is a real 404, so dead URLs drop out of the index
+                # instead of duplicating the home page.
+                html = seo_pages.render_not_found(INDEX_HTML, await _catalogue(), site, "/" + clean)
+                return HTMLResponse(html, status_code=404, headers=HTML_HEADERS)
 
     app.mount("/", SPAStaticFiles(directory=str(DIST_DIR), html=True), name="spa")
 

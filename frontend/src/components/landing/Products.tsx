@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Plus } from "lucide-react";
-import type { Product } from "@/lib/data";
+import { Link } from "react-router-dom";
+import { productPath, type Product } from "@/lib/data";
 import { scrollToId } from "@/lib/scroll";
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -77,10 +78,21 @@ export default function Products({ products }: { products: Product[] }) {
             </div>
 
             <div className="flex flex-1 flex-col p-6">
-              <h3 className="font-heading text-xl font-bold text-white sm:text-2xl">{p.name}</h3>
+              <h3 className="font-heading text-xl font-bold text-white sm:text-2xl">
+                <Link to={productPath(p)} className="transition-colors duration-200 hover:text-[#00f0ff]" data-testid={`product-link-${p.id}`}>
+                  {p.name}
+                </Link>
+              </h3>
               <p className="mt-3 line-clamp-4 flex-1 text-sm leading-relaxed text-slate-400">
                 {p.description}
               </p>
+              <Link
+                to={productPath(p)}
+                className="mt-3 w-fit font-mono text-[11px] uppercase tracking-[0.18em] text-[#00f0ff] transition-opacity duration-200 hover:opacity-70"
+                aria-label={`${p.name}: full details and pricing`}
+              >
+                Full details →
+              </Link>
               {p.hashtags.length > 0 && (
                 <p className="mt-3 font-mono text-[10px] tracking-wide text-[#00f0ff]/50">
                   {p.hashtags.slice(0, 4).join(" ")}

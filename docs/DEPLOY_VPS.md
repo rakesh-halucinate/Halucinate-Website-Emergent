@@ -50,6 +50,8 @@ MONGO_URL="mongodb://localhost:27017"
 DB_NAME="halucinate"
 CORS_ORIGINS="https://halucinate.rakeshanjanappa.com"
 APP_URL=https://halucinate.rakeshanjanappa.com
+SITE_URL=https://halucinate.rakeshanjanappa.com
+REDIRECT_HOSTS=
 JWT_SECRET="<generate: openssl rand -hex 32>"
 ADMIN_EMAIL="rakesh@halucinate.com"
 ADMIN_PASSWORD="<choose a strong password>"
@@ -230,3 +232,39 @@ cd ../frontend && yarn install && yarn build
 cd ../whatsapp-service && yarn install
 sudo systemctl restart halucinate-backend halucinate-whatsapp
 ```
+
+
+## SEO: product pages, sitemap and the canonical domain
+
+In single-port mode the backend rewrites `index.html` per URL (`backend/seo_pages.py`):
+
+- `/products/<slug>` — one indexable page per product with its own title, description,
+  canonical, Open Graph tags, `Product` + `BreadcrumbList` structured data and the full
+  copy in the initial HTML. The slug is the product name in lowercase with hyphens.
+  Products added in the admin console get a page automatically; tuned titles for the
+  original nine live in `PRODUCT_SEO`.
+- `/sitemap.xml`, `/robots.txt`, `/llms.txt` — generated from the live catalogue.
+- Unknown URLs return a real 404; `/admin` is served with `noindex`.
+
+After every deploy: `cd frontend && yarn build`, then `sudo systemctl restart halucinate-backend`
+(the built `index.html` is read once at startup).
+
+### Moving the site to halucinate.com (recommended)
+
+Today `halucinate.com` 302-redirects to `halucinate.rakeshanjanappa.com`, so Google indexes
+the subdomain and the brand domain earns nothing. To make `halucinate.com` the real address:
+
+1. Cloudflare: remove the redirect rule on `halucinate.com`, then add `halucinate.com` (and
+   `www.halucinate.com`) as public hostnames on the `halucinate-website` tunnel → `http://localhost:3000`.
+   Keep `halucinate.rakeshanjanappa.com` on the tunnel too, so it can redirect.
+2. `backend/.env`:
+   ```
+   SITE_URL=https://halucinate.com
+   APP_URL=https://halucinate.com
+   CORS_ORIGINS="https://halucinate.com"
+   REDIRECT_HOSTS=halucinate.rakeshanjanappa.com,www.halucinate.com
+   ```
+3. `sudo systemctl restart halucinate-backend`. Every canonical tag, sitemap entry and
+   structured-data URL now says `halucinate.com`, and the old hostnames 301 to it.
+4. Google Search Console: add `halucinate.com` as a Domain property, submit
+   `https://halucinate.com/sitemap.xml`, and use Change of Address on the old property if it exists.
